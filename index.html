@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<!--
+  Herzbarometer – Dein Liebesbarometer
+  Copyright © 2026 Olaf. Alle Rechte vorbehalten.
+  Konzept, Formel-Umsetzung, Design und Code sind urheberrechtlich geschützt.
+  Vervielfältigung, Verbreitung oder Bearbeitung nur mit schriftlicher Genehmigung.
+-->
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#e0446c">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Herzbarometer">
+<title>Herzbarometer – Dein Liebesbarometer</title>
+<style>
+  :root {
+    --rose: #e0446c;
+    --rose-dark: #b82e52;
+    --rose-light: #ffd9e3;
+    --bg1: #fff5f7;
+    --bg2: #ffe3ea;
+    --text: #4a2530;
+    --muted: #9c6b78;
+    --card: #ffffff;
+    --good: #e0446c;
+    --ok: #f2a05c;
+    --bad: #c0637a;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(160deg, var(--bg1), var(--bg2));
+    min-height: 100vh;
+    color: var(--text);
+    display: flex;
+    justify-content: center;
+    padding: 24px 16px 60px;
+  }
+  .app { width: 100%; max-width: 520px; }
+  .card {
+    background: var(--card);
+    border-radius: 24px;
+    padding: 32px 28px;
+    box-shadow: 0 10px 40px rgba(224, 68, 108, 0.15);
+    animation: fadeIn 0.4s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  h1 { font-size: 2rem; color: var(--rose-dark); text-align: center; }
+  .subtitle { text-align: center; color: var(--muted); margin: 6px 0 20px; }
+  .heart-wrap { display: flex; justify-content: center; align-items: center; gap: 14px; margin: 12px 0; }
+  .btn {
+    display: block; width: 100%; padding: 15px; border: none; border-radius: 14px;
+    background: linear-gradient(135deg, var(--rose), var(--rose-dark));
+    color: #fff; font-size: 1.05rem; font-weight: 600; cursor: pointer; margin-top: 18px;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(224,68,108,0.35); }
+  .btn.secondary { background: #fff; color: var(--rose-dark); border: 2px solid var(--rose-light); }
+  .btn.small { width: auto; display: inline-block; padding: 10px 18px; font-size: 0.9rem; margin-top: 10px; }
+  .disclaimer {
+    font-size: 0.8rem; color: var(--muted); background: var(--bg1);
+    border-radius: 12px; padding: 12px 14px; margin-top: 20px; line-height: 1.5;
+  }
+  /* Fragen */
+  .progress { display: flex; gap: 5px; margin-bottom: 22px; }
+  .progress span { flex: 1; height: 6px; border-radius: 3px; background: var(--rose-light); transition: background 0.3s; }
+  .progress span.done { background: var(--rose); }
+  .q-area { font-size: 0.78rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--rose); font-weight: 700; }
+  .q-text { font-size: 1.25rem; font-weight: 600; margin: 10px 0 4px; line-height: 1.4; }
+  .q-hint { color: var(--muted); font-size: 0.88rem; margin-bottom: 26px; }
+  .slider-value {
+    text-align: center; font-size: 2.6rem; font-weight: 700; color: var(--rose-dark); margin-bottom: 4px;
+  }
+  .slider-unit { text-align: center; color: var(--muted); font-size: 0.85rem; margin-bottom: 18px; }
+  input[type=range] {
+    width: 100%; appearance: none; -webkit-appearance: none; height: 10px; border-radius: 5px;
+    background: linear-gradient(90deg, var(--rose-light), var(--rose)); outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 30px; height: 30px; border-radius: 50%;
+    background: #fff url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23e0446c"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>') center/18px no-repeat;
+    border: 2px solid var(--rose); cursor: pointer; box-shadow: 0 2px 8px rgba(224,68,108,0.4);
+  }
+  .nav-row { display: flex; gap: 12px; }
+  .nav-row .btn { flex: 1; }
+  /* Ergebnis */
+  .score-label { text-align: center; font-size: 1.15rem; font-weight: 700; margin-top: 6px; }
+  .score-desc { text-align: center; color: var(--muted); font-size: 0.92rem; margin: 6px 0 18px; line-height: 1.5; }
+  .bars { margin-top: 8px; }
+  .bar-row { margin-bottom: 12px; }
+  .bar-head { display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 4px; }
+  .bar-track { height: 12px; border-radius: 6px; background: var(--bg2); overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--rose), var(--rose-dark)); width: 0; transition: width 0.8s ease; }
+  .tips { margin-top: 20px; }
+  .tip {
+    background: var(--bg1); border-left: 4px solid var(--rose); border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 10px; font-size: 0.92rem; line-height: 1.55;
+  }
+  .tip b { color: var(--rose-dark); }
+  h2 { font-size: 1.15rem; color: var(--rose-dark); margin: 22px 0 10px; }
+  /* Formel */
+  .formula-box { display: none; background: var(--bg1); border-radius: 12px; padding: 14px; margin-top: 14px; font-size: 0.85rem; line-height: 1.7; }
+  .formula-box.open { display: block; }
+  .formula-box code { display: block; background: #fff; border-radius: 8px; padding: 10px; margin: 8px 0; font-size: 0.78rem; overflow-x: auto; white-space: pre; }
+  /* Verlauf */
+  .history-item {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--bg1); border-radius: 12px; padding: 12px 16px; margin-bottom: 8px;
+  }
+  .history-item .date { color: var(--muted); font-size: 0.85rem; }
+  .history-item .val { font-weight: 700; color: var(--rose-dark); font-size: 1.1rem; }
+  .trend { text-align: center; font-size: 0.95rem; margin: 10px 0 16px; color: var(--muted); }
+  .empty { text-align: center; color: var(--muted); padding: 30px 0; }
+  .link-btn { background: none; border: none; color: var(--rose); font-size: 0.9rem; cursor: pointer; text-decoration: underline; display: block; margin: 14px auto 0; }
+  canvas { width: 100%; }
+  /* Herzschlag-Animation */
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    12% { transform: scale(1.07); }
+    24% { transform: scale(0.985); }
+    36% { transform: scale(1.045); }
+    50% { transform: scale(1); }
+  }
+  .heart-wrap svg { animation: heartbeat 2.4s ease-in-out infinite; transform-origin: center; }
+  /* Drehung um die eigene senkrechte Achse (wie eine Münze), alle 10 Sekunden */
+  @keyframes spinAxis {
+    from { transform: perspective(500px) rotateY(0deg); }
+    to   { transform: perspective(500px) rotateY(360deg); }
+  }
+  .heart-wrap svg.spin { animation: spinAxis 1.4s ease-in-out; }
+  /* Mini-Barometer neben dem Herz (halbe Herzhöhe) */
+  .baro-wrap { position: relative; display: flex; align-items: flex-end; }
+  .baro {
+    width: 11px; height: 100%; border-radius: 6px; background: var(--bg2); overflow: hidden;
+    display: flex; align-items: flex-end; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .baro-fill { width: 100%; border-radius: 6px; animation: baroPulse 4.5s ease-in-out infinite; }
+  /* Farbe wandert beim Steigen mit: orange -> rosa -> pink -> tiefrot oben */
+  @keyframes baroPulse {
+    0%   { height: 6%;   background: #f6c177; }
+    22%  { height: 40%;  background: #f2a05c; }
+    40%  { height: 72%;  background: #ff7a9e; }
+    52%  { height: 100%; background: #d61f56; }
+    62%  { height: 100%; background: #e0446c; }
+    82%  { height: 30%;  background: #f2a05c; }
+    100% { height: 6%;   background: #f6c177; }
+  }
+  /* Kleine Farbexplosion oben, wenn der Balken 100 % erreicht (gleiche Taktung) */
+  .burst {
+    position: absolute; top: -14px; left: 50%; width: 30px; height: 30px;
+    transform: translateX(-50%); pointer-events: none; opacity: 0;
+    background:
+      radial-gradient(circle at 50% 50%, #fff 0%, #ffd9e3 18%, transparent 22%),
+      conic-gradient(#ff7a9e 0 12%, transparent 12% 18%, #f2a05c 18% 30%, transparent 30% 37%,
+        #d61f56 37% 49%, transparent 49% 55%, #ff7a9e 55% 67%, transparent 67% 74%,
+        #f6c177 74% 86%, transparent 86% 92%, #e0446c 92% 100%);
+    border-radius: 50%;
+    animation: burstPop 4.5s ease-out infinite;
+  }
+  @keyframes burstPop {
+    0%, 46%  { opacity: 0; transform: translateX(-50%) scale(0.15) rotate(0deg); }
+    52%      { opacity: 1; transform: translateX(-50%) scale(1.15) rotate(40deg); }
+    64%      { opacity: 0; transform: translateX(-50%) scale(1.7) rotate(90deg); }
+    100%     { opacity: 0; transform: translateX(-50%) scale(0.15) rotate(0deg); }
+  }
+  /* Schwebende Herzchen */
+  .float-heart {
+    position: fixed; bottom: -40px; pointer-events: none; z-index: 5;
+    animation: floatUp linear forwards; opacity: 0.85;
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(0) rotate(-8deg); opacity: 0.85; }
+    100% { transform: translateY(-110vh) rotate(14deg); opacity: 0; }
+  }
+  /* Musik-Button */
+  .music-btn {
+    position: fixed; top: 16px; right: 16px; width: 48px; height: 48px; border-radius: 50%;
+    border: 2px solid var(--rose-light); background: #fff; font-size: 1.35rem; cursor: pointer;
+    box-shadow: 0 4px 14px rgba(224,68,108,0.25); z-index: 20; transition: transform 0.15s;
+  }
+  .music-btn:hover { transform: scale(1.08); }
+  .music-btn.on { background: var(--rose-light); }
+  /* Sprachumschalter */
+  .lang-switch { position: fixed; top: 16px; left: 16px; z-index: 20; display: flex; gap: 6px; }
+  .lang-btn {
+    width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--rose-light);
+    background: #fff; font-size: 0.78rem; font-weight: 700; color: var(--rose-dark);
+    cursor: pointer; box-shadow: 0 4px 14px rgba(224,68,108,0.18); transition: transform 0.15s;
+  }
+  .lang-btn:hover { transform: scale(1.08); }
+  .lang-btn.active { background: var(--rose-light); }
+  /* Report */
+  .report-meta { text-align: center; color: var(--muted); font-size: 0.85rem; margin-bottom: 16px; }
+  .report-section { margin-bottom: 20px; }
+  .report-section h3 { color: var(--rose-dark); font-size: 1rem; margin-bottom: 6px; }
+  .report-section p { font-size: 0.92rem; line-height: 1.6; margin-bottom: 6px; }
+  .report-section ul { margin: 6px 0 0 20px; }
+  .report-section li { font-size: 0.92rem; line-height: 1.6; margin-bottom: 5px; }
+  .report-score-line { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 5px 0; border-bottom: 1px solid var(--bg2); }
+  .copyright {
+    text-align: center; color: var(--muted); font-size: 0.75rem; margin-top: 18px; opacity: 0.8;
+  }
+  @media print {
+    body { background: #fff; padding: 0; display: block; }
+    .app { max-width: 100%; }
+    .card { box-shadow: none; border-radius: 0; padding: 10px; animation: none; }
+    .no-print, .music-btn, .btn, .link-btn, .baro-wrap, .lang-switch { display: none !important; }
+    .heart-wrap svg { animation: none; }
+  }
+</style>
+</head>
+<body>
+<button class="music-btn" id="musicBtn" title="Liebesmelodie an/aus">🎵</button>
+<div class="lang-switch">
+  <button class="lang-btn" data-lang="de">DE</button>
+  <button class="lang-btn" data-lang="en">EN</button>
+  <button class="lang-btn" data-lang="it">IT</button>
+  <button class="lang-btn" data-lang="es">ES</button>
+  <button class="lang-btn" data-lang="th">TH</button>
+</div>
+<div class="app" id="app"></div>
+<div class="copyright" id="copyLine">Herzbarometer © 2026 Olaf · Alle Rechte vorbehalten</div>
+
+<script>
+"use strict";
+
+/* ============ Fragen & Bereiche ============ */
+const AREAS = {
+  N: { name: "Nähe & Aufmerksamkeit", weight: 0.15 },
+  Z: { name: "Zärtlichkeit",          weight: 0.15 },
+  G: { name: "Gemeinsame Zeit",       weight: 0.15 },
+  I: { name: "Intimität",             weight: 0.15 },
+  V: { name: "Vertrauen",             weight: 0.15 },
+  K: { name: "Kommunikation",         weight: 0.125 },
+  P: { name: "Positive Erlebnisse",   weight: 0.125 },
+  S: { name: "Harmonie (wenig Streit)", weight: null } // Abzugsfaktor
+};
+
+const QUESTIONS = [
+  { id:"n1", area:"N", text:"Wie viele Komplimente bekommst du pro Woche von deinem Partner / deiner Partnerin?", hint:"Ehrlich geschätzt – kleine nette Worte zählen auch.", min:0, max:10, unit:"pro Woche", norm:v=>Math.min(1,v/7) },
+  { id:"n2", area:"N", text:"Wie viele kleine Gesten gibt es pro Monat? (Blumen, Überraschungen, Aufmerksamkeiten)", hint:"Alles zählt: ein Kaffee ans Bett, ein liebes Zettelchen, Blumen.", min:0, max:10, unit:"pro Monat", norm:v=>Math.min(1,v/4) },
+  { id:"z1", area:"Z", text:"Wie oft küsst oder umarmt ihr euch pro Woche?", hint:"Bewusste Momente der Zärtlichkeit.", min:0, max:20, unit:"pro Woche", norm:v=>Math.min(1,v/14) },
+  { id:"g1", area:"G", text:"Wie viele gemeinsame Abende oder Aktivitäten habt ihr pro Woche?", hint:"Bewusst zusammen – nicht nur nebeneinander vor dem Fernseher.", min:0, max:7, unit:"pro Woche", norm:v=>Math.min(1,v/4) },
+  { id:"i1", area:"I", text:"Wie oft seid ihr pro Monat körperlich intim?", hint:"Es gibt kein richtig oder falsch – es geht um eure Zufriedenheit.", min:0, max:20, unit:"pro Monat", norm:v=>Math.min(1,v/8) },
+  { id:"v1", area:"V", text:"Wie sehr vertraust du deinem Partner / deiner Partnerin?", hint:"0 = gar nicht, 10 = blind.", min:0, max:10, unit:"von 10", norm:v=>v/10 },
+  { id:"k1", area:"K", text:"Wie viele richtig gute Gespräche führt ihr pro Woche?", hint:"Gespräche mit echtem Zuhören, nicht nur Organisation des Alltags.", min:0, max:10, unit:"pro Woche", norm:v=>Math.min(1,v/5) },
+  { id:"k2", area:"K", text:"„Wir können über alles reden.“ Wie sehr stimmt das?", hint:"0 = stimmt gar nicht, 10 = stimmt völlig.", min:0, max:10, unit:"von 10", norm:v=>v/10 },
+  { id:"p1", area:"P", text:"Wie viele schöne gemeinsame Erlebnisse hattet ihr im letzten Monat?", hint:"Ausflüge, Essen gehen, gemeinsames Lachen, kleine Abenteuer.", min:0, max:10, unit:"im Monat", norm:v=>Math.min(1,v/4) },
+  { id:"p2", area:"P", text:"Wie stark sind eure gemeinsamen Interessen und Ziele?", hint:"0 = keine Gemeinsamkeiten, 10 = wir ziehen voll an einem Strang.", min:0, max:10, unit:"von 10", norm:v=>v/10 },
+  { id:"s1", area:"S", text:"Wie oft streitet ihr euch pro Woche?", hint:"Echte Streits, nicht kleine Frotzeleien.", min:0, max:10, unit:"pro Woche", norm:v=>Math.min(1,v/5) },
+  { id:"s2", area:"S", text:"Wie belastend sind ungelöste Konflikte zwischen euch?", hint:"0 = nichts schwelt, 10 = es steht ständig etwas zwischen uns.", min:0, max:10, unit:"von 10", norm:v=>v/10 }
+];
+
+const LEVELS = [
+  { min:90, label:"Sehr starke Beziehung 💗", desc:"Hohe Nähe, Vertrauen, Aufmerksamkeit und gemeinsame Aktivität. Weiter so – pflegt, was ihr habt." },
+  { min:75, label:"Starke Beziehung 💕", desc:"Viel Positives und eine gute emotionale Verbindung. Einzelne Bereiche können noch wachsen." },
+  { min:60, label:"Solide, aber ausbaufähig 💛", desc:"Eine gute Basis ist da, aber manche Bereiche werden gerade vernachlässigt." },
+  { min:40, label:"Instabiler Bereich 🧡", desc:"Es gibt Nähe, aber auch deutliche Defizite. Jetzt bewusst gegensteuern lohnt sich." },
+  { min:0,  label:"Kritischer Bereich ❤️‍🩹", desc:"Die Beziehung braucht dringend Aufmerksamkeit. Kleine Schritte zählen – fangt heute an." }
+];
+
+const TIPS = {
+  N: "Der Bereich <b>Nähe & Aufmerksamkeit</b> ist schwach. Nimm dir vor, diese Woche drei ehrliche Komplimente zu machen – konkret und persönlich, nicht allgemein. Kleine Gesten wirken oft mehr als große Geschenke.",
+  Z: "Der Bereich <b>Zärtlichkeit</b> kommt zu kurz. Führt ein kleines Ritual ein: ein bewusster Kuss zur Begrüßung und zum Abschied, jeden Tag. Körperliche Nähe wächst über Gewohnheiten, nicht über große Vorsätze.",
+  G: "Der Bereich <b>gemeinsame Zeit</b> ist schwach. Plane in den nächsten sieben Tagen bewusst einen gemeinsamen Abend – ohne Handy, ohne Arbeit, ohne Verpflichtungen.",
+  I: "Der <b>Intimitätswert</b> ist niedrig. Das bedeutet nicht automatisch ein Problem, aber es zeigt, dass körperliche Nähe aktuell wenig Raum bekommt. Sprich offen, aber ohne Vorwurf darüber.",
+  V: "Das <b>Vertrauen</b> hat Luft nach oben. Vertrauen wächst durch Verlässlichkeit im Kleinen: Zusagen einhalten, ehrlich sein, auch bei Unangenehmem. Sprecht darüber, was jedem von euch Sicherheit gibt.",
+  K: "Die <b>Kommunikation</b> ist ausbaufähig. Probiert ein wöchentliches Gespräch von 20 Minuten: Jeder erzählt, was ihn gerade bewegt – der andere hört nur zu, ohne Ratschläge und ohne Verteidigung.",
+  P: "Es fehlen <b>positive gemeinsame Erlebnisse</b>. Plant für die nächsten zwei Wochen etwas Kleines, auf das ihr euch beide freut – ein Ausflug, ein neues Restaurant, ein gemeinsames Projekt.",
+  S: "<b>Streit und ungelöste Konflikte</b> belasten die Beziehung. Wählt einen ruhigen Moment und sprecht ein Thema an – nur eines. Regel: Ich-Botschaften statt Vorwürfe, und der andere darf ausreden."
+};
+
+/* ============ Report-Ratgeber (ausführliche Texte) ============ */
+const GUIDE = {
+  N: { why: "Aufmerksamkeit ist das tägliche Signal: Ich sehe dich, du bist mir wichtig. Fehlt sie, fühlen sich Partner schnell übersehen – auch wenn eigentlich alles in Ordnung ist.",
+       actions: ["Mache diese Woche drei ehrliche, konkrete Komplimente – nicht „du siehst gut aus“, sondern warum genau.",
+                 "Plane eine kleine Überraschung ohne Anlass: Lieblingssüßigkeit mitbringen, ein Zettel mit einer lieben Nachricht.",
+                 "Frage einmal am Tag aufrichtig: „Wie war dein Tag wirklich?“ – und höre die Antwort zu Ende."] },
+  Z: { why: "Zärtlichkeit hält die körperliche Verbindung im Alltag lebendig. Paare, die sich regelmäßig berühren, streiten nachweislich versöhnlicher.",
+       actions: ["Führt ein festes Ritual ein: ein bewusster Kuss zur Begrüßung und zum Abschied, jeden Tag.",
+                 "Umarmt euch einmal am Tag mindestens sechs Sekunden lang – das klingt banal, verändert aber die Stimmung.",
+                 "Berührung nebenbei: Hand auf die Schulter, kurzes Streicheln im Vorbeigehen – ohne Absicht, ohne Erwartung."] },
+  G: { why: "Gemeinsame Zeit ist der Nährboden für alles andere. Nebeneinander existieren ist nicht dasselbe wie miteinander leben.",
+       actions: ["Plane in den nächsten sieben Tagen einen festen gemeinsamen Abend – ohne Handy, ohne Arbeit, ohne Verpflichtungen.",
+                 "Etabliert einen wiederkehrenden Termin (z. B. jeden Mittwoch kochen, jeden Sonntag spazieren). Regelmäßigkeit schlägt Spontaneität.",
+                 "Macht eine Liste mit fünf Dingen, die ihr beide gern tun würdet, und setzt jeden Monat eines davon um."] },
+  I: { why: "Intimität ist für viele Paare ein Gradmesser für Nähe – aber auch ein sensibles Thema. Ein niedriger Wert ist kein Urteil, sondern ein Hinweis, dass körperliche Nähe gerade wenig Raum bekommt.",
+       actions: ["Sprich das Thema offen an, aber ohne Vorwurf: „Ich wünsche mir mehr Nähe mit dir“ statt „du willst ja nie“.",
+                 "Schafft Gelegenheiten statt Druck: ein früher Abend, ein gemeinsames Bad, Zeit ohne Kinder oder Termine.",
+                 "Findet heraus, was jedem von euch Nähe bedeutet – die Antworten sind oft unterschiedlicher als gedacht."] },
+  V: { why: "Vertrauen ist das Fundament. Es entsteht nicht durch große Worte, sondern durch Verlässlichkeit im Kleinen – und es wächst langsam, kann aber schnell beschädigt werden.",
+       actions: ["Halte kleine Zusagen konsequent ein – wer beim Kleinen verlässlich ist, dem glaubt man auch beim Großen.",
+                 "Sei ehrlich, auch wenn es unbequem ist. Eine unangenehme Wahrheit schadet weniger als eine entdeckte Ausrede.",
+                 "Sprecht darüber, was jedem von euch Sicherheit gibt – und was Unsicherheit auslöst."] },
+  K: { why: "Kommunikation entscheidet, ob Probleme wachsen oder schrumpfen. Die meisten Beziehungskrisen sind keine Liebeskrisen, sondern Gesprächskrisen.",
+       actions: ["Führt ein wöchentliches 20-Minuten-Gespräch ein: Jeder erzählt, was ihn bewegt – der andere hört nur zu, ohne Ratschläge, ohne Verteidigung.",
+                 "Nutze Ich-Botschaften: „Ich fühle mich allein gelassen“ statt „du kümmerst dich nie“.",
+                 "Legt Handys weg, wenn ihr redet. Halbe Aufmerksamkeit kommt als halbes Interesse an."] },
+  P: { why: "Gemeinsame positive Erlebnisse sind das Gedächtnis der Beziehung. Paare, die zusammen Neues erleben, bewerten ihre Partnerschaft insgesamt besser – der Alltag zehrt sonst von alten Erinnerungen.",
+       actions: ["Plant für die nächsten zwei Wochen etwas Kleines, auf das ihr euch beide freut – Ausflug, neues Restaurant, gemeinsames Projekt.",
+                 "Probiert bewusst etwas aus, das keiner von euch kennt. Neues verbindet stärker als Gewohntes.",
+                 "Haltet schöne Momente fest: ein gemeinsames Foto, ein Satz im Kalender. Erinnerung verstärkt Wirkung."] },
+  S: { why: "Streit an sich ist nicht das Problem – ungelöste, schwelende Konflikte sind es. Sie wirken wie Hintergrundrauschen, das jede schöne Situation leiser macht.",
+       actions: ["Wählt einen ruhigen Moment und sprecht ein Thema an – nur eines. Nicht alles auf einmal.",
+                 "Regel für Streitgespräche: ausreden lassen, Ich-Botschaften, keine alten Vorwürfe aus vergangenen Konflikten hervorholen.",
+                 "Findet ihr allein keinen Weg aus einem Dauerkonflikt, ist eine Paarberatung kein Scheitern, sondern ein Werkzeug."] }
+};
+
+/* ============ Sprachen: DE steckt in den Datenstrukturen, EN/IT/ES/TH in L10N ============ */
+const OPEN_ENDED = new Set(["n1","n2","z1","g1","i1","k1","s1"]);
+const LANGS = ["de","en","it","es","th"];
+let LANG = localStorage.getItem("herzbarometer_lang") || (navigator.language || "de").slice(0, 2).toLowerCase();
+if (!LANGS.includes(LANG)) LANG = "de";
+
+const UI = {
+de: {
+  dateLocale:"de-DE", timeSuffix:" Uhr", rights:"Alle Rechte vorbehalten",
+  subtitle:"Dein Liebesbarometer",
+  intro:"12 kurze Fragen zu eurer Beziehung.<br>Am Ende siehst du, wie voll dein Herz gerade ist –<br>mit Analyse und konkreten Tipps.",
+  start:"Herz-Check starten 💘", hist:"Verlauf ansehen ({n})",
+  disclaimer:"<b>Hinweis:</b> Das Herzbarometer ist kein wissenschaftlicher Beweis für Liebe. Es ist ein Reflexionswerkzeug, das Hinweise auf Nähe, Aufmerksamkeit, Kommunikation und gemeinsame Beziehungspflege gibt. Alle Daten bleiben nur auf diesem Gerät.",
+  qOf:"Frage {i} von {n}", back:"Zurück", next:"Weiter", showResult:"Ergebnis anzeigen 💗",
+  skip:"Diese Frage überspringen →", skipStay:"Frage bleibt übersprungen – weiter ohne Antwort →", orMore:" (oder mehr)",
+  tooFewTitle:"Zu wenig Antworten", tooFewText:"Du hast alle Fragen übersprungen – so kann das Herz nichts messen.<br>Beantworte mindestens eine Frage.", backToQ:"Zurück zu den Fragen",
+  resultTitle:"Dein Ergebnis", areasTitle:"Deine Bereiche", tipsTitle:"Deine Empfehlungen",
+  howCalc:"Wie wird gerechnet?", skippedLabel:"übersprungen",
+  formulaIntro:"Alle Antworten werden zuerst auf Werte zwischen 0 und 1 normiert (z.&nbsp;B. Küsse pro Woche ÷ 14, maximal 1). Deine Bereichswerte:",
+  formulaLabel:"Formel:", codeBase:"Basis (B) = gewichteter Mittelwert der beantworteten Bereiche", codeSkipS:"[Streitfragen übersprungen]",
+  skipNote:"Übersprungene Bereiche ({list}) zählen nicht mit; die Gewichte der beantworteten Bereiche werden entsprechend hochgerechnet.",
+  fullNote:"Die positiven Gewichte summieren sich auf 1,0.", penaltyNote:"Streit &amp; ungelöste Konflikte (S) ziehen bis zu 15 Punkte ab.",
+  save:"Ergebnis speichern 📈", reportBtn:"Empfehlungsreport ansehen 📄", again:"Nochmal testen",
+  reportTitle:"Empfehlungsreport", overview:"Übersicht deiner Bereiche", why:"Warum das wichtig ist:", what:"Was du konkret tun kannst:",
+  strengths:"Eure Stärken", strengthsText:"{list} – diese Bereiche laufen gut (jeweils 75 % oder mehr). Pflegt sie bewusst weiter, denn Stärken sind der beste Puffer für schwierige Phasen.",
+  handleTitle:"Wie du mit dem Ergebnis umgehst",
+  handleP1:"Nimm dir nicht alles auf einmal vor. Wähle <b>einen</b> Bereich und arbeite zwei Wochen nur daran – kleine, regelmäßige Schritte verändern mehr als große Vorsätze. Wiederhole den Herz-Check etwa einmal pro Woche, dann zeigt dir der Verlauf, ob sich etwas bewegt.",
+  handleP2:"Und: Sprich mit deinem Partner oder deiner Partnerin über das Ergebnis. Das Barometer misst nur deine Sicht – die andere Perspektive gehört dazu.",
+  reportDisclaimer:"Das Herzbarometer ist kein wissenschaftlicher Beweis für Liebe und ersetzt keine Paarberatung. Es ist ein Reflexionswerkzeug für Nähe, Aufmerksamkeit, Kommunikation und Beziehungspflege.",
+  print:"Drucken / Als PDF speichern 🖨️", backToResult:"Zurück zum Ergebnis",
+  historyTitle:"Verlauf", historySubtitle:"Euer Herz über die Zeit",
+  trendUp:"📈 Euer Herz ist um {n} Punkte gestiegen – schön!", trendDown:"📉 Euer Herz ist um {n} Punkte gefallen. Schau in die Empfehlungen.", trendFlat:"➡️ Stabil geblieben seit dem letzten Check.",
+  empty:"Noch keine gespeicherten Ergebnisse.<br>Mach den ersten Herz-Check!",
+  newCheck:"Neuer Herz-Check 💘", home:"Zur Startseite", clear:"Verlauf löschen", confirmClear:"Wirklich den gesamten Verlauf löschen?"
+},
+en: {
+  dateLocale:"en-GB", timeSuffix:"", rights:"All rights reserved",
+  subtitle:"Your love barometer",
+  intro:"12 short questions about your relationship.<br>At the end you'll see how full your heart is –<br>with analysis and practical tips.",
+  start:"Start the heart check 💘", hist:"View history ({n})",
+  disclaimer:"<b>Note:</b> The Herzbarometer is not scientific proof of love. It is a reflection tool that offers insights into closeness, attention, communication and how you nurture your relationship. All data stays on this device only.",
+  qOf:"Question {i} of {n}", back:"Back", next:"Next", showResult:"Show result 💗",
+  skip:"Skip this question →", skipStay:"Question stays skipped – continue without answering →", orMore:" (or more)",
+  tooFewTitle:"Not enough answers", tooFewText:"You skipped every question – the heart can't measure anything this way.<br>Please answer at least one question.", backToQ:"Back to the questions",
+  resultTitle:"Your result", areasTitle:"Your areas", tipsTitle:"Your recommendations",
+  howCalc:"How is it calculated?", skippedLabel:"skipped",
+  formulaIntro:"All answers are first normalized to values between 0 and 1 (e.g., kisses per week ÷ 14, capped at 1). Your area values:",
+  formulaLabel:"Formula:", codeBase:"Base (B) = weighted average of the answered areas", codeSkipS:"[conflict questions skipped]",
+  skipNote:"Skipped areas ({list}) don't count; the weights of the answered areas are scaled up accordingly.",
+  fullNote:"The positive weights sum to 1.0.", penaltyNote:"Arguments &amp; unresolved conflicts (S) subtract up to 15 points.",
+  save:"Save result 📈", reportBtn:"View recommendation report 📄", again:"Test again",
+  reportTitle:"Recommendation report", overview:"Overview of your areas", why:"Why this matters:", what:"What you can do:",
+  strengths:"Your strengths", strengthsText:"{list} – these areas are doing well (75% or more each). Keep nurturing them; strengths are the best buffer for difficult phases.",
+  handleTitle:"How to work with your result",
+  handleP1:"Don't take on everything at once. Pick <b>one</b> area and work only on it for two weeks – small, regular steps change more than big resolutions. Repeat the heart check about once a week; the history will show you whether things are moving.",
+  handleP2:"And: talk with your partner about the result. The barometer only measures your view – the other perspective belongs to the picture.",
+  reportDisclaimer:"The Herzbarometer is not scientific proof of love and does not replace couples counseling. It is a reflection tool for closeness, attention, communication and relationship care.",
+  print:"Print / Save as PDF 🖨️", backToResult:"Back to the result",
+  historyTitle:"History", historySubtitle:"Your heart over time",
+  trendUp:"📈 Your heart rose by {n} points – lovely!", trendDown:"📉 Your heart fell by {n} points. Check the recommendations.", trendFlat:"➡️ Stable since the last check.",
+  empty:"No saved results yet.<br>Do your first heart check!",
+  newCheck:"New heart check 💘", home:"Back to start", clear:"Clear history", confirmClear:"Really delete the entire history?"
+},
+it: {
+  dateLocale:"it-IT", timeSuffix:"", rights:"Tutti i diritti riservati",
+  subtitle:"Il tuo barometro dell'amore",
+  intro:"12 brevi domande sulla vostra relazione.<br>Alla fine vedrai quanto è pieno il tuo cuore –<br>con analisi e consigli concreti.",
+  start:"Inizia il check del cuore 💘", hist:"Vedi lo storico ({n})",
+  disclaimer:"<b>Nota:</b> il Herzbarometer non è una prova scientifica dell'amore. È uno strumento di riflessione che offre indicazioni su vicinanza, attenzione, comunicazione e cura della relazione. Tutti i dati restano solo su questo dispositivo.",
+  qOf:"Domanda {i} di {n}", back:"Indietro", next:"Avanti", showResult:"Mostra il risultato 💗",
+  skip:"Salta questa domanda →", skipStay:"La domanda resta saltata – continua senza risposta →", orMore:" (o più)",
+  tooFewTitle:"Troppo poche risposte", tooFewText:"Hai saltato tutte le domande – così il cuore non può misurare nulla.<br>Rispondi almeno a una domanda.", backToQ:"Torna alle domande",
+  resultTitle:"Il tuo risultato", areasTitle:"Le tue aree", tipsTitle:"I tuoi consigli",
+  howCalc:"Come si calcola?", skippedLabel:"saltata",
+  formulaIntro:"Tutte le risposte vengono prima normalizzate tra 0 e 1 (per es. baci a settimana ÷ 14, massimo 1). I tuoi valori per area:",
+  formulaLabel:"Formula:", codeBase:"Base (B) = media ponderata delle aree con risposta", codeSkipS:"[domande sui litigi saltate]",
+  skipNote:"Le aree saltate ({list}) non contano; i pesi delle aree con risposta vengono riproporzionati.",
+  fullNote:"I pesi positivi sommano a 1,0.", penaltyNote:"Litigi e conflitti irrisolti (S) tolgono fino a 15 punti.",
+  save:"Salva il risultato 📈", reportBtn:"Vedi il report dei consigli 📄", again:"Rifai il test",
+  reportTitle:"Report dei consigli", overview:"Panoramica delle tue aree", why:"Perché è importante:", what:"Che cosa puoi fare concretamente:",
+  strengths:"I vostri punti di forza", strengthsText:"{list} – queste aree vanno bene (almeno il 75% ciascuna). Continuate a coltivarle: i punti di forza sono il miglior cuscinetto nelle fasi difficili.",
+  handleTitle:"Come usare il risultato",
+  handleP1:"Non affrontare tutto in una volta. Scegli <b>una</b> area e lavoraci per due settimane – piccoli passi regolari cambiano più dei grandi propositi. Ripeti il check circa una volta a settimana: lo storico ti mostrerà se qualcosa si muove.",
+  handleP2:"E poi: parla del risultato con il tuo partner. Il barometro misura solo il tuo punto di vista – l'altra prospettiva fa parte del quadro.",
+  reportDisclaimer:"Il Herzbarometer non è una prova scientifica dell'amore e non sostituisce una consulenza di coppia. È uno strumento di riflessione su vicinanza, attenzione, comunicazione e cura della relazione.",
+  print:"Stampa / Salva come PDF 🖨️", backToResult:"Torna al risultato",
+  historyTitle:"Storico", historySubtitle:"Il vostro cuore nel tempo",
+  trendUp:"📈 Il vostro cuore è salito di {n} punti – che bello!", trendDown:"📉 Il vostro cuore è sceso di {n} punti. Guarda i consigli.", trendFlat:"➡️ Stabile dall'ultimo check.",
+  empty:"Nessun risultato salvato.<br>Fai il primo check del cuore!",
+  newCheck:"Nuovo check del cuore 💘", home:"Alla pagina iniziale", clear:"Cancella lo storico", confirmClear:"Vuoi davvero cancellare tutto lo storico?"
+},
+es: {
+  dateLocale:"es-ES", timeSuffix:"", rights:"Todos los derechos reservados",
+  subtitle:"Tu barómetro del amor",
+  intro:"12 preguntas breves sobre vuestra relación.<br>Al final verás lo lleno que está tu corazón –<br>con análisis y consejos concretos.",
+  start:"Empezar el chequeo del corazón 💘", hist:"Ver historial ({n})",
+  disclaimer:"<b>Nota:</b> el Herzbarometer no es una prueba científica del amor. Es una herramienta de reflexión que ofrece pistas sobre cercanía, atención, comunicación y cuidado de la relación. Todos los datos se quedan solo en este dispositivo.",
+  qOf:"Pregunta {i} de {n}", back:"Atrás", next:"Siguiente", showResult:"Ver resultado 💗",
+  skip:"Saltar esta pregunta →", skipStay:"La pregunta sigue saltada – continuar sin respuesta →", orMore:" (o más)",
+  tooFewTitle:"Muy pocas respuestas", tooFewText:"Has saltado todas las preguntas – así el corazón no puede medir nada.<br>Responde al menos a una pregunta.", backToQ:"Volver a las preguntas",
+  resultTitle:"Tu resultado", areasTitle:"Tus áreas", tipsTitle:"Tus recomendaciones",
+  howCalc:"¿Cómo se calcula?", skippedLabel:"saltada",
+  formulaIntro:"Todas las respuestas se normalizan primero a valores entre 0 y 1 (p. ej., besos por semana ÷ 14, máximo 1). Tus valores por área:",
+  formulaLabel:"Fórmula:", codeBase:"Base (B) = media ponderada de las áreas respondidas", codeSkipS:"[preguntas de conflicto saltadas]",
+  skipNote:"Las áreas saltadas ({list}) no cuentan; los pesos de las áreas respondidas se reescalan en consecuencia.",
+  fullNote:"Los pesos positivos suman 1,0.", penaltyNote:"Las peleas y los conflictos sin resolver (S) restan hasta 15 puntos.",
+  save:"Guardar resultado 📈", reportBtn:"Ver informe de recomendaciones 📄", again:"Repetir el test",
+  reportTitle:"Informe de recomendaciones", overview:"Resumen de tus áreas", why:"Por qué es importante:", what:"Qué puedes hacer en concreto:",
+  strengths:"Vuestros puntos fuertes", strengthsText:"{list} – estas áreas van bien (al menos un 75 % cada una). Seguid cuidándolas: los puntos fuertes son el mejor amortiguador para las fases difíciles.",
+  handleTitle:"Cómo usar el resultado",
+  handleP1:"No lo abarques todo a la vez. Elige <b>un</b> área y trabaja solo en ella durante dos semanas – los pasos pequeños y regulares cambian más que los grandes propósitos. Repite el chequeo más o menos una vez por semana; el historial te mostrará si algo se mueve.",
+  handleP2:"Y además: habla del resultado con tu pareja. El barómetro solo mide tu punto de vista – la otra perspectiva forma parte del cuadro.",
+  reportDisclaimer:"El Herzbarometer no es una prueba científica del amor y no sustituye a una terapia de pareja. Es una herramienta de reflexión sobre cercanía, atención, comunicación y cuidado de la relación.",
+  print:"Imprimir / Guardar como PDF 🖨️", backToResult:"Volver al resultado",
+  historyTitle:"Historial", historySubtitle:"Vuestro corazón a lo largo del tiempo",
+  trendUp:"📈 Vuestro corazón ha subido {n} puntos – ¡qué bien!", trendDown:"📉 Vuestro corazón ha bajado {n} puntos. Mira las recomendaciones.", trendFlat:"➡️ Estable desde el último chequeo.",
+  empty:"Aún no hay resultados guardados.<br>¡Haz tu primer chequeo del corazón!",
+  newCheck:"Nuevo chequeo del corazón 💘", home:"A la página de inicio", clear:"Borrar historial", confirmClear:"¿Borrar de verdad todo el historial?"
+},
+th: {
+  dateLocale:"th-TH", timeSuffix:" น.", rights:"สงวนลิขสิทธิ์",
+  subtitle:"บารอมิเตอร์ความรักของคุณ",
+  intro:"คำถามสั้น ๆ 12 ข้อเกี่ยวกับความสัมพันธ์ของคุณ<br>ตอนท้ายคุณจะเห็นว่าหัวใจของคุณเต็มแค่ไหน –<br>พร้อมบทวิเคราะห์และคำแนะนำที่ใช้ได้จริง",
+  start:"เริ่มเช็กหัวใจ 💘", hist:"ดูประวัติ ({n})",
+  disclaimer:"<b>หมายเหตุ:</b> Herzbarometer ไม่ใช่ข้อพิสูจน์ทางวิทยาศาสตร์ของความรัก แต่เป็นเครื่องมือสะท้อนความคิดที่ให้ข้อสังเกตเรื่องความใกล้ชิด ความใส่ใจ การสื่อสาร และการดูแลความสัมพันธ์ ข้อมูลทั้งหมดอยู่ในอุปกรณ์นี้เท่านั้น",
+  qOf:"คำถามที่ {i} จาก {n}", back:"ย้อนกลับ", next:"ถัดไป", showResult:"ดูผลลัพธ์ 💗",
+  skip:"ข้ามคำถามนี้ →", skipStay:"คำถามนี้ยังถูกข้าม – ไปต่อโดยไม่ตอบ →", orMore:" (หรือมากกว่า)",
+  tooFewTitle:"คำตอบน้อยเกินไป", tooFewText:"คุณข้ามทุกคำถาม – หัวใจจึงวัดอะไรไม่ได้<br>โปรดตอบอย่างน้อยหนึ่งข้อ", backToQ:"กลับไปที่คำถาม",
+  resultTitle:"ผลลัพธ์ของคุณ", areasTitle:"ด้านต่าง ๆ ของคุณ", tipsTitle:"คำแนะนำของคุณ",
+  howCalc:"คำนวณอย่างไร?", skippedLabel:"ข้ามแล้ว",
+  formulaIntro:"คำตอบทั้งหมดจะถูกปรับเป็นค่าระหว่าง 0 ถึง 1 ก่อน (เช่น จูบต่อสัปดาห์ ÷ 14 สูงสุด 1) ค่าของแต่ละด้าน:",
+  formulaLabel:"สูตร:", codeBase:"ฐาน (B) = ค่าเฉลี่ยถ่วงน้ำหนักของด้านที่ตอบ", codeSkipS:"[ข้ามคำถามเรื่องการทะเลาะ]",
+  skipNote:"ด้านที่ถูกข้าม ({list}) จะไม่ถูกนับ น้ำหนักของด้านที่ตอบจะถูกปรับเพิ่มตามสัดส่วน",
+  fullNote:"น้ำหนักด้านบวกรวมกันเท่ากับ 1.0", penaltyNote:"การทะเลาะและความขัดแย้งที่ค้างคา (S) หักได้สูงสุด 15 คะแนน",
+  save:"บันทึกผลลัพธ์ 📈", reportBtn:"ดูรายงานคำแนะนำ 📄", again:"ทำแบบทดสอบอีกครั้ง",
+  reportTitle:"รายงานคำแนะนำ", overview:"ภาพรวมด้านต่าง ๆ ของคุณ", why:"ทำไมจึงสำคัญ:", what:"สิ่งที่ทำได้จริง:",
+  strengths:"จุดแข็งของคุณทั้งคู่", strengthsText:"{list} – ด้านเหล่านี้ไปได้ดี (อย่างน้อย 75%) ดูแลต่อไปอย่างตั้งใจ เพราะจุดแข็งคือเกราะที่ดีที่สุดในช่วงเวลายากลำบาก",
+  handleTitle:"จะใช้ผลลัพธ์นี้อย่างไร",
+  handleP1:"อย่าทำทุกอย่างพร้อมกัน เลือก<b>หนึ่ง</b>ด้านแล้วตั้งใจทำเพียงด้านนั้นสองสัปดาห์ – ก้าวเล็ก ๆ ที่สม่ำเสมอเปลี่ยนแปลงได้มากกว่าความตั้งใจใหญ่ ๆ ทำเช็กหัวใจซ้ำประมาณสัปดาห์ละครั้ง แล้วประวัติจะบอกว่ามีอะไรขยับหรือไม่",
+  handleP2:"และอีกอย่าง: คุยกับคู่ของคุณเรื่องผลลัพธ์ บารอมิเตอร์วัดเพียงมุมมองของคุณ – มุมมองของอีกฝ่ายก็เป็นส่วนหนึ่งของภาพรวม",
+  reportDisclaimer:"Herzbarometer ไม่ใช่ข้อพิสูจน์ทางวิทยาศาสตร์ของความรัก และไม่สามารถแทนการปรึกษาคู่รักได้ เป็นเครื่องมือสะท้อนความคิดเรื่องความใกล้ชิด ความใส่ใจ การสื่อสาร และการดูแลความสัมพันธ์",
+  print:"พิมพ์ / บันทึกเป็น PDF 🖨️", backToResult:"กลับไปที่ผลลัพธ์",
+  historyTitle:"ประวัติ", historySubtitle:"หัวใจของคุณตามช่วงเวลา",
+  trendUp:"📈 หัวใจของคุณเพิ่มขึ้น {n} คะแนน – ดีมาก!", trendDown:"📉 หัวใจของคุณลดลง {n} คะแนน ลองดูคำแนะนำ", trendFlat:"➡️ คงที่ตั้งแต่การเช็กครั้งก่อน",
+  empty:"ยังไม่มีผลลัพธ์ที่บันทึกไว้<br>มาเช็กหัวใจครั้งแรกกันเถอะ!",
+  newCheck:"เช็กหัวใจครั้งใหม่ 💘", home:"ไปหน้าแรก", clear:"ลบประวัติ", confirmClear:"ต้องการลบประวัติทั้งหมดจริงหรือไม่?"
+}
+};
+
+/* Übersetzungen der Inhalte (Bereiche, Fragen, Stufen, Tipps, Ratgeber) */
+const L10N = {
+en: {
+  areas: { N:"Closeness & attention", Z:"Affection", G:"Time together", I:"Intimacy", V:"Trust", K:"Communication", P:"Positive experiences", S:"Harmony (few arguments)" },
+  questions: {
+    n1:{ text:"How many compliments do you get from your partner per week?", hint:"An honest guess – small kind words count too.", unit:"per week" },
+    n2:{ text:"How many small gestures are there per month? (flowers, surprises, little attentions)", hint:"Everything counts: coffee in bed, a sweet note, flowers.", unit:"per month" },
+    z1:{ text:"How often do you kiss or hug each week?", hint:"Conscious moments of affection.", unit:"per week" },
+    g1:{ text:"How many shared evenings or activities do you have per week?", hint:"Consciously together – not just side by side in front of the TV.", unit:"per week" },
+    i1:{ text:"How often are you physically intimate per month?", hint:"There is no right or wrong – it's about your satisfaction.", unit:"per month" },
+    v1:{ text:"How much do you trust your partner?", hint:"0 = not at all, 10 = blindly.", unit:"out of 10" },
+    k1:{ text:"How many really good conversations do you have per week?", hint:"Conversations with real listening, not just organizing daily life.", unit:"per week" },
+    k2:{ text:"\"We can talk about anything.\" How true is that?", hint:"0 = not true at all, 10 = completely true.", unit:"out of 10" },
+    p1:{ text:"How many lovely shared experiences did you have last month?", hint:"Trips, dining out, laughing together, little adventures.", unit:"per month" },
+    p2:{ text:"How strong are your shared interests and goals?", hint:"0 = nothing in common, 10 = we pull together completely.", unit:"out of 10" },
+    s1:{ text:"How often do you argue per week?", hint:"Real arguments, not little teasing.", unit:"per week" },
+    s2:{ text:"How burdensome are unresolved conflicts between you?", hint:"0 = nothing smolders, 10 = something always stands between us.", unit:"out of 10" }
+  },
+  levels: [
+    { label:"Very strong relationship 💗", desc:"High closeness, trust, attention and shared activity. Keep it up – nurture what you have." },
+    { label:"Strong relationship 💕", desc:"Lots of positives and a good emotional connection. Some areas can still grow." },
+    { label:"Solid, with room to grow 💛", desc:"A good foundation is there, but some areas are being neglected." },
+    { label:"Unstable zone 🧡", desc:"There is closeness, but also clear deficits. Now is a good time to act." },
+    { label:"Critical zone ❤️‍🩹", desc:"The relationship urgently needs attention. Small steps count – start today." }
+  ],
+  tips: {
+    N:"The area <b>closeness & attention</b> is weak. Aim to give three honest compliments this week – specific and personal, not generic. Small gestures often mean more than big gifts.",
+    Z:"<b>Affection</b> is falling short. Introduce a small ritual: a conscious kiss to say hello and goodbye, every day. Physical closeness grows through habits, not grand resolutions.",
+    G:"The area <b>time together</b> is weak. Plan one shared evening within the next seven days – no phone, no work, no obligations.",
+    I:"The <b>intimacy</b> value is low. That doesn't automatically mean a problem, but it shows physical closeness gets little room right now. Talk about it openly, without blame.",
+    V:"<b>Trust</b> has room to grow. Trust is built through reliability in small things: keeping promises, being honest even when it's uncomfortable. Talk about what gives each of you a sense of security.",
+    K:"<b>Communication</b> can improve. Try a weekly 20-minute conversation: each of you shares what's on your mind – the other only listens, no advice, no defense.",
+    P:"<b>Positive shared experiences</b> are missing. Plan something small for the next two weeks that you both look forward to – a trip, a new restaurant, a joint project.",
+    S:"<b>Arguments and unresolved conflicts</b> weigh on the relationship. Pick a calm moment and address one topic – just one. Rule: 'I' statements instead of accusations, and let each other finish."
+  },
+  guide: {
+    N:{ why:"Attention is the daily signal: I see you, you matter to me. Without it, partners quickly feel overlooked – even when everything else is fine.",
+        actions:["Give three honest, specific compliments this week – not 'you look nice', but exactly why.","Plan a small surprise for no reason: bring their favorite treat, leave a loving note.","Once a day, ask sincerely: 'How was your day, really?' – and listen to the whole answer."] },
+    Z:{ why:"Affection keeps the physical bond alive in everyday life. Couples who touch regularly argue in a demonstrably more conciliatory way.",
+        actions:["Create a fixed ritual: a conscious kiss when greeting and parting, every day.","Hug at least once a day for six seconds – it sounds trivial but changes the mood.","Casual touch: a hand on the shoulder, a brief caress in passing – no agenda, no expectations."] },
+    G:{ why:"Time together is the soil everything else grows in. Existing side by side is not the same as living with each other.",
+        actions:["Plan a fixed shared evening within the next seven days – no phone, no work, no obligations.","Establish a recurring date (e.g., cooking every Wednesday, a Sunday walk). Regularity beats spontaneity.","Write a list of five things you'd both enjoy and do one of them each month."] },
+    I:{ why:"For many couples intimacy is a gauge of closeness – but also a sensitive topic. A low value is not a verdict; it's a signal that physical closeness currently gets little room.",
+        actions:["Raise the topic openly but without blame: 'I'd like more closeness with you' instead of 'you never want to'.","Create opportunities instead of pressure: an early evening, a shared bath, time without kids or appointments.","Find out what closeness means to each of you – the answers often differ more than expected."] },
+    V:{ why:"Trust is the foundation. It doesn't come from big words but from reliability in small things – it grows slowly and is easily damaged.",
+        actions:["Keep small promises consistently – whoever is reliable in small things is believed in big ones.","Be honest even when it's uncomfortable. An awkward truth harms less than a discovered excuse.","Talk about what gives each of you security – and what triggers insecurity."] },
+    K:{ why:"Communication decides whether problems grow or shrink. Most relationship crises are not love crises but conversation crises.",
+        actions:["Introduce a weekly 20-minute conversation: each shares what moves them – the other only listens, no advice, no defense.","Use 'I' statements: 'I feel left alone' instead of 'you never care'.","Put phones away when you talk. Half attention comes across as half interest."] },
+    P:{ why:"Positive shared experiences are the memory of a relationship. Couples who experience new things together rate their relationship better overall – otherwise everyday life feeds on old memories.",
+        actions:["Plan something small for the next two weeks that you both look forward to – a trip, a new restaurant, a joint project.","Deliberately try something neither of you knows. Novelty bonds more than routine.","Capture beautiful moments: a photo together, a line in the calendar. Memory amplifies effect."] },
+    S:{ why:"Arguing itself is not the problem – unresolved, smoldering conflicts are. They act like background noise that makes every beautiful moment quieter.",
+        actions:["Pick a calm moment and address one topic – only one. Not everything at once.","Rules for arguments: let each other finish, 'I' statements, don't dig up old accusations.","If you can't find a way out of a lasting conflict alone, couples counseling is not failure – it's a tool."] }
+  }
+},
+it: {
+  areas: { N:"Vicinanza e attenzioni", Z:"Tenerezza", G:"Tempo insieme", I:"Intimità", V:"Fiducia", K:"Comunicazione", P:"Esperienze positive", S:"Armonia (pochi litigi)" },
+  questions: {
+    n1:{ text:"Quanti complimenti ricevi dal tuo partner a settimana?", hint:"Una stima sincera – contano anche le piccole parole gentili.", unit:"a settimana" },
+    n2:{ text:"Quanti piccoli gesti ci sono al mese? (fiori, sorprese, attenzioni)", hint:"Conta tutto: un caffè a letto, un bigliettino affettuoso, dei fiori.", unit:"al mese" },
+    z1:{ text:"Quante volte vi baciate o abbracciate a settimana?", hint:"Momenti consapevoli di tenerezza.", unit:"a settimana" },
+    g1:{ text:"Quante serate o attività condividete a settimana?", hint:"Insieme davvero – non solo uno accanto all'altra davanti alla TV.", unit:"a settimana" },
+    i1:{ text:"Quante volte siete fisicamente intimi al mese?", hint:"Non c'è giusto o sbagliato – conta la vostra soddisfazione.", unit:"al mese" },
+    v1:{ text:"Quanto ti fidi del tuo partner?", hint:"0 = per niente, 10 = ciecamente.", unit:"su 10" },
+    k1:{ text:"Quante conversazioni davvero buone avete a settimana?", hint:"Conversazioni con vero ascolto, non solo organizzazione quotidiana.", unit:"a settimana" },
+    k2:{ text:"«Possiamo parlare di tutto.» Quanto è vero?", hint:"0 = per niente vero, 10 = del tutto vero.", unit:"su 10" },
+    p1:{ text:"Quante belle esperienze condivise avete avuto nell'ultimo mese?", hint:"Gite, cene fuori, risate insieme, piccole avventure.", unit:"al mese" },
+    p2:{ text:"Quanto sono forti i vostri interessi e obiettivi comuni?", hint:"0 = nulla in comune, 10 = remiamo nella stessa direzione.", unit:"su 10" },
+    s1:{ text:"Quante volte litigate a settimana?", hint:"Litigi veri, non piccoli battibecchi.", unit:"a settimana" },
+    s2:{ text:"Quanto pesano i conflitti irrisolti tra di voi?", hint:"0 = niente cova sotto la cenere, 10 = c'è sempre qualcosa tra noi.", unit:"su 10" }
+  },
+  levels: [
+    { label:"Relazione molto forte 💗", desc:"Grande vicinanza, fiducia, attenzione e attività condivisa. Continuate così – coltivate ciò che avete." },
+    { label:"Relazione forte 💕", desc:"Tanti aspetti positivi e un buon legame emotivo. Alcune aree possono ancora crescere." },
+    { label:"Solida, ma migliorabile 💛", desc:"Le basi sono buone, ma alcune aree vengono trascurate." },
+    { label:"Zona instabile 🧡", desc:"C'è vicinanza, ma anche chiari deficit. Vale la pena agire adesso." },
+    { label:"Zona critica ❤️‍🩹", desc:"La relazione ha urgente bisogno di attenzione. Contano i piccoli passi – iniziate oggi." }
+  ],
+  tips: {
+    N:"L'area <b>vicinanza e attenzioni</b> è debole. Proponiti tre complimenti sinceri questa settimana – concreti e personali, non generici. I piccoli gesti valgono spesso più dei grandi regali.",
+    Z:"La <b>tenerezza</b> scarseggia. Introducete un piccolo rituale: un bacio consapevole per salutarvi, ogni giorno. La vicinanza fisica cresce con le abitudini, non con i grandi propositi.",
+    G:"L'area <b>tempo insieme</b> è debole. Nei prossimi sette giorni pianifica una serata insieme – senza telefono, senza lavoro, senza impegni.",
+    I:"Il valore dell'<b>intimità</b> è basso. Non significa automaticamente un problema, ma mostra che la vicinanza fisica ha poco spazio al momento. Parlatene apertamente, senza rimproveri.",
+    V:"La <b>fiducia</b> può crescere. Nasce dall'affidabilità nelle piccole cose: mantenere le promesse, essere onesti anche quando è scomodo. Parlate di ciò che dà sicurezza a ciascuno di voi.",
+    K:"La <b>comunicazione</b> è migliorabile. Provate una conversazione settimanale di 20 minuti: uno racconta ciò che lo tocca – l'altro ascolta soltanto, senza consigli e senza difendersi.",
+    P:"Mancano le <b>esperienze positive condivise</b>. Pianificate per le prossime due settimane qualcosa di piccolo che aspettate entrambi con gioia – una gita, un ristorante nuovo, un progetto comune.",
+    S:"<b>Litigi e conflitti irrisolti</b> pesano sulla relazione. Scegliete un momento tranquillo e affrontate un tema – uno solo. Regola: messaggi in prima persona invece di accuse, e lasciarsi finire di parlare."
+  },
+  guide: {
+    N:{ why:"L'attenzione è il segnale quotidiano: ti vedo, sei importante per me. Se manca, il partner si sente presto trascurato – anche quando in fondo va tutto bene.",
+        actions:["Fai questa settimana tre complimenti sinceri e concreti – non «stai bene», ma il perché esatto.","Prepara una piccola sorpresa senza motivo: il dolce preferito, un bigliettino affettuoso.","Una volta al giorno chiedi con sincerità: «Com'è andata davvero la tua giornata?» – e ascolta la risposta fino in fondo."] },
+    Z:{ why:"La tenerezza mantiene vivo il legame fisico nella vita quotidiana. Le coppie che si toccano regolarmente litigano in modo dimostrabilmente più conciliante.",
+        actions:["Create un rituale fisso: un bacio consapevole per salutarvi e congedarvi, ogni giorno.","Abbracciatevi almeno una volta al giorno per sei secondi – sembra banale, ma cambia l'umore.","Contatto di passaggio: una mano sulla spalla, una carezza al volo – senza secondi fini, senza aspettative."] },
+    G:{ why:"Il tempo insieme è il terreno su cui cresce tutto il resto. Esistere uno accanto all'altro non è vivere insieme.",
+        actions:["Pianifica nei prossimi sette giorni una serata fissa insieme – senza telefono, senza lavoro, senza impegni.","Stabilite un appuntamento ricorrente (per es. cucinare ogni mercoledì, passeggiata la domenica). La regolarità batte la spontaneità.","Scrivete una lista di cinque cose che piacerebbero a entrambi e realizzatene una al mese."] },
+    I:{ why:"Per molte coppie l'intimità è un termometro della vicinanza – ma anche un tema delicato. Un valore basso non è un giudizio, bensì un segnale che la vicinanza fisica ha poco spazio.",
+        actions:["Affronta il tema apertamente ma senza rimproveri: «Vorrei più vicinanza con te» invece di «tu non vuoi mai».","Create occasioni invece di pressione: una serata anticipata, un bagno insieme, tempo senza figli o impegni.","Scoprite che cosa significa vicinanza per ciascuno di voi – le risposte sono spesso più diverse del previsto."] },
+    V:{ why:"La fiducia è il fondamento. Non nasce dalle grandi parole ma dall'affidabilità nelle piccole cose – cresce lentamente e si danneggia in fretta.",
+        actions:["Mantieni con coerenza le piccole promesse – a chi è affidabile nel piccolo si crede anche nel grande.","Sii onesto anche quando è scomodo. Una verità spiacevole fa meno danni di una scusa scoperta.","Parlate di che cosa dà sicurezza a ciascuno – e che cosa crea insicurezza."] },
+    K:{ why:"La comunicazione decide se i problemi crescono o si riducono. La maggior parte delle crisi di coppia non sono crisi d'amore ma crisi di dialogo.",
+        actions:["Introducete una conversazione settimanale di 20 minuti: uno racconta ciò che lo muove – l'altro ascolta soltanto, senza consigli né difese.","Usa messaggi in prima persona: «Mi sento lasciato solo» invece di «non ti importa mai».","Mettete via i telefoni quando parlate. Mezza attenzione arriva come mezzo interesse."] },
+    P:{ why:"Le esperienze positive condivise sono la memoria della relazione. Le coppie che vivono cose nuove insieme valutano meglio la loro relazione – altrimenti la quotidianità vive di vecchi ricordi.",
+        actions:["Pianificate per le prossime due settimane qualcosa di piccolo che entrambi aspettate con gioia – una gita, un ristorante nuovo, un progetto comune.","Provate qualcosa che nessuno dei due conosce. Il nuovo unisce più dell'abituale.","Fissate i momenti belli: una foto insieme, una riga sul calendario. Il ricordo ne amplifica l'effetto."] },
+    S:{ why:"Litigare in sé non è il problema – lo sono i conflitti irrisolti che covano. Agiscono come un rumore di fondo che rende più silenzioso ogni momento bello.",
+        actions:["Scegliete un momento tranquillo e affrontate un tema – uno solo. Non tutto in una volta.","Regole per litigare: lasciarsi finire di parlare, messaggi in prima persona, non riesumare vecchie accuse.","Se da soli non uscite da un conflitto cronico, una consulenza di coppia non è un fallimento, è uno strumento."] }
+  }
+},
+es: {
+  areas: { N:"Cercanía y atenciones", Z:"Ternura", G:"Tiempo juntos", I:"Intimidad", V:"Confianza", K:"Comunicación", P:"Experiencias positivas", S:"Armonía (pocas peleas)" },
+  questions: {
+    n1:{ text:"¿Cuántos cumplidos recibes de tu pareja por semana?", hint:"Una estimación sincera – las pequeñas palabras amables también cuentan.", unit:"por semana" },
+    n2:{ text:"¿Cuántos pequeños gestos hay al mes? (flores, sorpresas, detalles)", hint:"Todo cuenta: un café en la cama, una notita cariñosa, flores.", unit:"al mes" },
+    z1:{ text:"¿Cuántas veces os besáis o abrazáis por semana?", hint:"Momentos conscientes de ternura.", unit:"por semana" },
+    g1:{ text:"¿Cuántas tardes o actividades compartís por semana?", hint:"Juntos de verdad – no solo uno al lado del otro frente al televisor.", unit:"por semana" },
+    i1:{ text:"¿Cuántas veces tenéis intimidad física al mes?", hint:"No hay bien ni mal – lo que cuenta es vuestra satisfacción.", unit:"al mes" },
+    v1:{ text:"¿Cuánto confías en tu pareja?", hint:"0 = nada, 10 = ciegamente.", unit:"de 10" },
+    k1:{ text:"¿Cuántas conversaciones realmente buenas tenéis por semana?", hint:"Conversaciones con escucha de verdad, no solo organización del día a día.", unit:"por semana" },
+    k2:{ text:"«Podemos hablar de todo.» ¿Cuánto es cierto?", hint:"0 = nada cierto, 10 = totalmente cierto.", unit:"de 10" },
+    p1:{ text:"¿Cuántas experiencias bonitas compartisteis el mes pasado?", hint:"Excursiones, cenas fuera, risas juntos, pequeñas aventuras.", unit:"al mes" },
+    p2:{ text:"¿Qué tan fuertes son vuestros intereses y metas comunes?", hint:"0 = nada en común, 10 = remamos en la misma dirección.", unit:"de 10" },
+    s1:{ text:"¿Cuántas veces os peleáis por semana?", hint:"Peleas de verdad, no pequeñas bromas.", unit:"por semana" },
+    s2:{ text:"¿Cuánto pesan los conflictos sin resolver entre vosotros?", hint:"0 = nada pendiente, 10 = siempre hay algo entre nosotros.", unit:"de 10" }
+  },
+  levels: [
+    { label:"Relación muy fuerte 💗", desc:"Mucha cercanía, confianza, atención y actividad compartida. Seguid así – cuidad lo que tenéis." },
+    { label:"Relación fuerte 💕", desc:"Mucho positivo y una buena conexión emocional. Algunas áreas aún pueden crecer." },
+    { label:"Sólida, pero mejorable 💛", desc:"Hay una buena base, pero algunas áreas están descuidadas." },
+    { label:"Zona inestable 🧡", desc:"Hay cercanía, pero también déficits claros. Merece la pena actuar ahora." },
+    { label:"Zona crítica ❤️‍🩹", desc:"La relación necesita atención urgente. Los pequeños pasos cuentan – empezad hoy." }
+  ],
+  tips: {
+    N:"El área de <b>cercanía y atenciones</b> está floja. Proponte hacer tres cumplidos sinceros esta semana – concretos y personales, no genéricos. Los pequeños gestos suelen valer más que los grandes regalos.",
+    Z:"La <b>ternura</b> se queda corta. Cread un pequeño ritual: un beso consciente al saludaros y despediros, cada día. La cercanía física crece con hábitos, no con grandes propósitos.",
+    G:"El área de <b>tiempo juntos</b> está floja. En los próximos siete días planifica una tarde juntos – sin móvil, sin trabajo, sin obligaciones.",
+    I:"El valor de <b>intimidad</b> es bajo. No significa automáticamente un problema, pero muestra que la cercanía física tiene poco espacio ahora. Habladlo abiertamente, sin reproches.",
+    V:"La <b>confianza</b> puede crecer. Nace de la fiabilidad en lo pequeño: cumplir promesas, ser honesto aunque incomode. Hablad de qué le da seguridad a cada uno.",
+    K:"La <b>comunicación</b> es mejorable. Probad una conversación semanal de 20 minutos: uno cuenta lo que le mueve – el otro solo escucha, sin consejos ni defensas.",
+    P:"Faltan <b>experiencias positivas compartidas</b>. Planificad para las próximas dos semanas algo pequeño que os ilusione a los dos – una excursión, un restaurante nuevo, un proyecto común.",
+    S:"<b>Las peleas y los conflictos sin resolver</b> pesan sobre la relación. Elegid un momento tranquilo y abordad un tema – solo uno. Regla: mensajes en primera persona en vez de reproches, y dejaos terminar de hablar."
+  },
+  guide: {
+    N:{ why:"La atención es la señal diaria: te veo, me importas. Si falta, la pareja se siente pronto invisible – incluso cuando en el fondo todo va bien.",
+        actions:["Haz esta semana tres cumplidos sinceros y concretos – no «qué bien te ves», sino exactamente por qué.","Prepara una pequeña sorpresa sin motivo: su dulce favorito, una notita cariñosa.","Una vez al día pregunta con sinceridad: «¿Qué tal tu día, de verdad?» – y escucha la respuesta hasta el final."] },
+    Z:{ why:"La ternura mantiene vivo el vínculo físico en el día a día. Las parejas que se tocan con regularidad discuten de forma demostrablemente más conciliadora.",
+        actions:["Cread un ritual fijo: un beso consciente al saludaros y despediros, cada día.","Abrazaos al menos una vez al día durante seis segundos – suena banal, pero cambia el ánimo.","Contacto de paso: una mano en el hombro, una caricia al pasar – sin intención, sin expectativas."] },
+    G:{ why:"El tiempo juntos es el terreno donde crece todo lo demás. Existir uno al lado del otro no es lo mismo que vivir juntos.",
+        actions:["Planifica en los próximos siete días una tarde fija juntos – sin móvil, sin trabajo, sin obligaciones.","Estableced una cita recurrente (p. ej., cocinar los miércoles, pasear los domingos). La regularidad gana a la espontaneidad.","Haced una lista de cinco cosas que os apetezcan a los dos y cumplid una cada mes."] },
+    I:{ why:"Para muchas parejas la intimidad es un termómetro de cercanía – pero también un tema delicado. Un valor bajo no es un veredicto, sino una señal de que la cercanía física tiene poco espacio.",
+        actions:["Aborda el tema abiertamente pero sin reproches: «Me gustaría más cercanía contigo» en vez de «tú nunca quieres».","Cread ocasiones en lugar de presión: una noche tranquila, un baño juntos, tiempo sin niños ni compromisos.","Descubrid qué significa cercanía para cada uno – las respuestas suelen diferir más de lo esperado."] },
+    V:{ why:"La confianza es el fundamento. No nace de grandes palabras sino de la fiabilidad en lo pequeño – crece despacio y se daña rápido.",
+        actions:["Cumple con constancia las pequeñas promesas – a quien es fiable en lo pequeño se le cree en lo grande.","Sé honesto aunque incomode. Una verdad incómoda hace menos daño que una excusa descubierta.","Hablad de qué le da seguridad a cada uno – y qué despierta inseguridad."] },
+    K:{ why:"La comunicación decide si los problemas crecen o se encogen. La mayoría de las crisis de pareja no son crisis de amor sino de diálogo.",
+        actions:["Introducid una conversación semanal de 20 minutos: cada uno cuenta lo que le mueve – el otro solo escucha, sin consejos ni defensas.","Usa mensajes en primera persona: «Me siento solo» en vez de «nunca te ocupas de mí».","Guardad los móviles cuando habléis. La atención a medias llega como interés a medias."] },
+    P:{ why:"Las experiencias positivas compartidas son la memoria de la relación. Las parejas que viven cosas nuevas juntas valoran mejor su relación – si no, el día a día vive de recuerdos viejos.",
+        actions:["Planificad para las próximas dos semanas algo pequeño que os ilusione a los dos – una excursión, un restaurante nuevo, un proyecto común.","Probad a propósito algo que ninguno conozca. Lo nuevo une más que lo habitual.","Guardad los momentos bonitos: una foto juntos, una línea en el calendario. El recuerdo amplifica el efecto."] },
+    S:{ why:"Pelearse no es el problema en sí – lo son los conflictos sin resolver que siguen ardiendo. Actúan como un ruido de fondo que apaga cada momento bonito.",
+        actions:["Elegid un momento tranquilo y abordad un tema – solo uno. No todo a la vez.","Reglas para discutir: dejaos terminar, mensajes en primera persona, no desenterrar reproches antiguos.","Si solos no salís de un conflicto crónico, una terapia de pareja no es un fracaso, es una herramienta."] }
+  }
+},
+th: {
+  areas: { N:"ความใกล้ชิดและความใส่ใจ", Z:"ความอ่อนโยน", G:"เวลาที่ใช้ร่วมกัน", I:"ความสัมพันธ์ใกล้ชิด", V:"ความไว้วางใจ", K:"การสื่อสาร", P:"ประสบการณ์ดี ๆ", S:"ความปรองดอง (ทะเลาะน้อย)" },
+  questions: {
+    n1:{ text:"คุณได้รับคำชมจากคู่ของคุณสัปดาห์ละกี่ครั้ง?", hint:"ประมาณตามจริง – คำพูดดี ๆ เล็ก ๆ ก็นับด้วย", unit:"ต่อสัปดาห์" },
+    n2:{ text:"มีการแสดงน้ำใจเล็ก ๆ เดือนละกี่ครั้ง? (ดอกไม้ เซอร์ไพรส์ ความใส่ใจ)", hint:"นับทุกอย่าง: กาแฟเสิร์ฟถึงเตียง โน้ตสั้น ๆ แสนหวาน ดอกไม้", unit:"ต่อเดือน" },
+    z1:{ text:"คุณจูบหรือกอดกันสัปดาห์ละกี่ครั้ง?", hint:"ช่วงเวลาแห่งความอ่อนโยนที่ตั้งใจ", unit:"ต่อสัปดาห์" },
+    g1:{ text:"คุณมีค่ำคืนหรือกิจกรรมร่วมกันสัปดาห์ละกี่ครั้ง?", hint:"อยู่ด้วยกันจริง ๆ – ไม่ใช่แค่นั่งข้างกันหน้าทีวี", unit:"ต่อสัปดาห์" },
+    i1:{ text:"คุณมีความสัมพันธ์ใกล้ชิดทางกายเดือนละกี่ครั้ง?", hint:"ไม่มีถูกหรือผิด – สำคัญที่ความพึงพอใจของคุณทั้งคู่", unit:"ต่อเดือน" },
+    v1:{ text:"คุณไว้ใจคู่ของคุณแค่ไหน?", hint:"0 = ไม่เลย, 10 = หมดใจ", unit:"จาก 10" },
+    k1:{ text:"คุณมีบทสนทนาดี ๆ จริง ๆ สัปดาห์ละกี่ครั้ง?", hint:"บทสนทนาที่ตั้งใจฟังกันจริง ๆ ไม่ใช่แค่จัดการเรื่องประจำวัน", unit:"ต่อสัปดาห์" },
+    k2:{ text:"“เราคุยกันได้ทุกเรื่อง” จริงแค่ไหน?", hint:"0 = ไม่จริงเลย, 10 = จริงที่สุด", unit:"จาก 10" },
+    p1:{ text:"เดือนที่ผ่านมาคุณมีประสบการณ์ดี ๆ ร่วมกันกี่ครั้ง?", hint:"เที่ยว กินข้าวนอกบ้าน หัวเราะด้วยกัน การผจญภัยเล็ก ๆ", unit:"ต่อเดือน" },
+    p2:{ text:"ความสนใจและเป้าหมายร่วมกันของคุณแข็งแรงแค่ไหน?", hint:"0 = ไม่มีอะไรเหมือนกันเลย, 10 = มุ่งไปทางเดียวกันเต็มที่", unit:"จาก 10" },
+    s1:{ text:"คุณทะเลาะกันสัปดาห์ละกี่ครั้ง?", hint:"การทะเลาะจริง ๆ ไม่ใช่การหยอกล้อ", unit:"ต่อสัปดาห์" },
+    s2:{ text:"ความขัดแย้งที่ยังค้างคาหนักหนาแค่ไหน?", hint:"0 = ไม่มีอะไรคุกรุ่น, 10 = มีบางอย่างคั่นกลางเราตลอด", unit:"จาก 10" }
+  },
+  levels: [
+    { label:"ความสัมพันธ์แข็งแรงมาก 💗", desc:"ความใกล้ชิด ความไว้ใจ ความใส่ใจ และกิจกรรมร่วมกันอยู่ในระดับสูง ทำต่อไป – ดูแลสิ่งที่มีอยู่" },
+    { label:"ความสัมพันธ์แข็งแรง 💕", desc:"มีสิ่งดี ๆ มากมายและสายใยทางใจที่ดี บางด้านยังเติบโตได้อีก" },
+    { label:"มั่นคง แต่พัฒนาได้อีก 💛", desc:"พื้นฐานดี แต่บางด้านกำลังถูกละเลย" },
+    { label:"ช่วงไม่มั่นคง 🧡", desc:"มีความใกล้ชิด แต่ก็มีจุดอ่อนชัดเจน ลงมือแก้ตอนนี้คุ้มค่า" },
+    { label:"ช่วงวิกฤต ❤️‍🩹", desc:"ความสัมพันธ์ต้องการความใส่ใจอย่างเร่งด่วน ก้าวเล็ก ๆ ก็มีค่า – เริ่มวันนี้" }
+  ],
+  tips: {
+    N:"ด้าน<b>ความใกล้ชิดและความใส่ใจ</b>ยังอ่อน ตั้งใจชมคู่ของคุณอย่างจริงใจสามครั้งในสัปดาห์นี้ – เจาะจงและเป็นส่วนตัว ไม่ใช่คำชมทั่วไป การแสดงน้ำใจเล็ก ๆ มักมีค่ามากกว่าของขวัญชิ้นใหญ่",
+    Z:"<b>ความอ่อนโยน</b>ยังน้อยไป สร้างพิธีเล็ก ๆ: จูบทักทายและบอกลาอย่างตั้งใจทุกวัน ความใกล้ชิดทางกายเติบโตจากนิสัย ไม่ใช่ความตั้งใจใหญ่โต",
+    G:"ด้าน<b>เวลาที่ใช้ร่วมกัน</b>ยังอ่อน ภายในเจ็ดวันนี้วางแผนค่ำคืนร่วมกันหนึ่งครั้ง – ไม่มีมือถือ ไม่มีงาน ไม่มีภาระ",
+    I:"ค่า<b>ความสัมพันธ์ใกล้ชิด</b>ต่ำ ไม่ได้แปลว่ามีปัญหาเสมอไป แต่แสดงว่าความใกล้ชิดทางกายมีพื้นที่น้อยในตอนนี้ คุยกันอย่างเปิดใจโดยไม่ตำหนิ",
+    V:"<b>ความไว้วางใจ</b>ยังโตได้อีก ความไว้ใจมาจากความน่าเชื่อถือในเรื่องเล็ก: รักษาคำพูด ซื่อสัตย์แม้ไม่สบายใจ คุยกันว่าอะไรทำให้แต่ละฝ่ายรู้สึกมั่นคง",
+    K:"<b>การสื่อสาร</b>พัฒนาได้อีก ลองคุยกันสัปดาห์ละ 20 นาที: ฝ่ายหนึ่งเล่าสิ่งที่อยู่ในใจ – อีกฝ่ายฟังอย่างเดียว ไม่แนะนำ ไม่แก้ตัว",
+    P:"ยังขาด<b>ประสบการณ์ดี ๆ ร่วมกัน</b> วางแผนสิ่งเล็ก ๆ ที่ทั้งคู่ตั้งตารอในสองสัปดาห์ข้างหน้า – ไปเที่ยว ร้านอาหารใหม่ โปรเจกต์ร่วมกัน",
+    S:"<b>การทะเลาะและความขัดแย้งที่ค้างคา</b>กดทับความสัมพันธ์ เลือกช่วงเวลาสงบแล้วคุยกันทีละเรื่อง – เรื่องเดียวเท่านั้น กติกา: พูดจากมุมของฉันแทนการกล่าวโทษ และให้อีกฝ่ายพูดจบ"
+  },
+  guide: {
+    N:{ why:"ความใส่ใจคือสัญญาณประจำวันที่บอกว่า: ฉันมองเห็นคุณ คุณสำคัญกับฉัน หากขาดไป อีกฝ่ายจะรู้สึกถูกมองข้ามอย่างรวดเร็ว แม้ทุกอย่างจะดูปกติดี",
+        actions:["สัปดาห์นี้ชมอย่างจริงใจสามครั้ง – บอกเหตุผลชัด ๆ ไม่ใช่แค่ «วันนี้ดูดีนะ»","เตรียมเซอร์ไพรส์เล็ก ๆ โดยไม่มีโอกาสพิเศษ: ขนมโปรด โน้ตแสนหวาน","วันละครั้ง ถามด้วยความจริงใจว่า «วันนี้เป็นอย่างไรบ้างจริง ๆ?» – แล้วฟังจนจบ"] },
+    Z:{ why:"ความอ่อนโยนทำให้สายใยทางกายมีชีวิตในทุก ๆ วัน คู่ที่สัมผัสกันสม่ำเสมอมักคืนดีกันง่ายกว่าเมื่อทะเลาะ",
+        actions:["สร้างพิธีประจำ: จูบทักทายและบอกลาอย่างตั้งใจทุกวัน","กอดกันอย่างน้อยวันละครั้งนานหกวินาที – ฟังดูธรรมดาแต่เปลี่ยนอารมณ์ได้จริง","สัมผัสระหว่างวัน: มือแตะไหล่ ลูบหลังเบา ๆ ตอนเดินผ่าน – ไม่มีเจตนาแอบแฝง ไม่มีความคาดหวัง"] },
+    G:{ why:"เวลาที่ใช้ร่วมกันคือดินที่ทุกอย่างเติบโต การอยู่ข้างกันเฉย ๆ ไม่เหมือนกับการใช้ชีวิตด้วยกัน",
+        actions:["ภายในเจ็ดวันนี้ กำหนดค่ำคืนร่วมกันหนึ่งครั้ง – ไม่มีมือถือ ไม่มีงาน ไม่มีภาระ","สร้างนัดประจำ (เช่น ทำอาหารทุกวันพุธ เดินเล่นวันอาทิตย์) ความสม่ำเสมอชนะความบังเอิญ","เขียนรายการห้าอย่างที่อยากทำด้วยกัน แล้วทำเดือนละหนึ่งอย่าง"] },
+    I:{ why:"สำหรับหลายคู่ ความใกล้ชิดคือมาตรวัดความผูกพัน – แต่ก็เป็นเรื่องละเอียดอ่อน ค่าที่ต่ำไม่ใช่คำตัดสิน แต่เป็นสัญญาณว่าความใกล้ชิดทางกายมีพื้นที่น้อยในช่วงนี้",
+        actions:["พูดเรื่องนี้อย่างเปิดใจแต่ไม่ตำหนิ: «ฉันอยากใกล้ชิดกับเธอมากขึ้น» แทน «เธอไม่เคยต้องการเลย»","สร้างโอกาสแทนการกดดัน: เข้านอนเร็วขึ้น อาบน้ำด้วยกัน เวลาที่ไม่มีลูกหรือนัดหมาย","ค้นหาว่าความใกล้ชิดมีความหมายอย่างไรกับแต่ละฝ่าย – คำตอบมักต่างกันกว่าที่คิด"] },
+    V:{ why:"ความไว้วางใจคือรากฐาน ไม่ได้มาจากคำพูดสวยหรูแต่มาจากความน่าเชื่อถือในเรื่องเล็ก ๆ – โตช้าแต่พังง่าย",
+        actions:["รักษาสัญญาเล็ก ๆ อย่างสม่ำเสมอ – คนที่เชื่อถือได้ในเรื่องเล็กจะได้รับความเชื่อในเรื่องใหญ่","ซื่อสัตย์แม้จะอึดอัด ความจริงที่ไม่น่าฟังทำร้ายน้อยกว่าข้ออ้างที่ถูกจับได้","คุยกันว่าอะไรทำให้แต่ละฝ่ายรู้สึกมั่นคง – และอะไรทำให้ไม่มั่นใจ"] },
+    K:{ why:"การสื่อสารตัดสินว่าปัญหาจะโตขึ้นหรือเล็กลง วิกฤตคู่รักส่วนใหญ่ไม่ใช่วิกฤตความรัก แต่เป็นวิกฤตการพูดคุย",
+        actions:["เริ่มคุยกันสัปดาห์ละ 20 นาที: ฝ่ายหนึ่งเล่าสิ่งที่อยู่ในใจ – อีกฝ่ายฟังอย่างเดียว ไม่แนะนำ ไม่แก้ตัว","ใช้ประโยคจากมุมของฉัน: «ฉันรู้สึกโดดเดี่ยว» แทน «เธอไม่เคยสนใจฉันเลย»","วางมือถือเมื่อคุยกัน ความสนใจครึ่งเดียวถูกรับรู้เป็นความใส่ใจครึ่งเดียว"] },
+    P:{ why:"ประสบการณ์ดี ๆ ร่วมกันคือความทรงจำของความสัมพันธ์ คู่ที่ได้ลองสิ่งใหม่ด้วยกันมักมองความสัมพันธ์ในแง่ดีขึ้น – ไม่เช่นนั้นชีวิตประจำวันจะกินบุญเก่า",
+        actions:["วางแผนสิ่งเล็ก ๆ ที่ทั้งคู่ตั้งตารอในสองสัปดาห์ข้างหน้า – เที่ยว ร้านใหม่ โปรเจกต์ร่วม","ตั้งใจลองสิ่งที่ทั้งคู่ไม่เคยทำ สิ่งใหม่เชื่อมใจได้มากกว่าสิ่งเดิม ๆ","เก็บช่วงเวลาดี ๆ ไว้: ถ่ายรูปคู่ เขียนสั้น ๆ ในปฏิทิน ความทรงจำขยายผลของความสุข"] },
+    S:{ why:"การทะเลาะไม่ใช่ปัญหาในตัวเอง – ปัญหาคือความขัดแย้งที่ค้างคาและคุกรุ่น มันเป็นเหมือนเสียงรบกวนเบื้องหลังที่ทำให้ทุกช่วงเวลาดี ๆ เบาลง",
+        actions:["เลือกช่วงเวลาสงบและคุยทีละเรื่อง – เรื่องเดียวเท่านั้น ไม่ใช่ทุกเรื่องพร้อมกัน","กติกาการทะเลาะ: ให้พูดจนจบ ใช้ประโยคจากมุมของฉัน ไม่ขุดเรื่องเก่า","หากออกจากความขัดแย้งเรื้อรังเองไม่ได้ การปรึกษาคู่รักไม่ใช่ความล้มเหลว แต่เป็นเครื่องมือ"] }
+  }
+}
+};
+
+/* Sprach-Hilfsfunktionen */
+const T = () => UI[LANG];
+const fmt = (s, vars) => s.replace(/\{(\w+)\}/g, (m, k) => vars[k] !== undefined ? vars[k] : m);
+const areaName = k => LANG === "de" ? AREAS[k].name : L10N[LANG].areas[k];
+const qLoc = q => LANG === "de" ? q : { ...q, ...L10N[LANG].questions[q.id] };
+const tipLoc = k => LANG === "de" ? TIPS[k] : L10N[LANG].tips[k];
+const guideLoc = k => LANG === "de" ? GUIDE[k] : L10N[LANG].guide[k];
+const levelLoc = score => {
+  const i = LEVELS.findIndex(l => score >= l.min);
+  return LANG === "de" ? LEVELS[i] : { min: LEVELS[i].min, ...L10N[LANG].levels[i] };
+};
+function setLang(l) {
+  LANG = l;
+  localStorage.setItem("herzbarometer_lang", l);
+  document.documentElement.lang = l;
+  document.querySelectorAll(".lang-btn").forEach(b => b.classList.toggle("active", b.dataset.lang === l));
+  document.getElementById("copyLine").textContent = "Herzbarometer © 2026 Olaf · " + T().rights;
+  render();
+}
+
+/* ============ Berechnung ============ */
+function computeScore(values) {
+  // values: {id: number | null}  (null = übersprungen)
+  const areaVals = {}, skipped = [];
+  for (const key of Object.keys(AREAS)) {
+    const qs = QUESTIONS.filter(q => q.area === key);
+    const answered = qs.filter(q => values[q.id] !== null && values[q.id] !== undefined);
+    if (!answered.length) { areaVals[key] = null; skipped.push(key); continue; }
+    const normed = answered.map(q => q.norm(values[q.id]));
+    areaVals[key] = normed.reduce((a,b)=>a+b,0) / normed.length;
+  }
+  // Übersprungene Bereiche zählen nicht: Gewichte der beantworteten werden hochgerechnet
+  const posKeys = ["N","Z","G","I","V","K","P"].filter(k => areaVals[k] !== null);
+  if (!posKeys.length) return { score: null, areaVals, basis: 0, skipped };
+  const wSum = posKeys.reduce((a,k) => a + AREAS[k].weight, 0);
+  const basis = posKeys.reduce((a,k) => a + AREAS[k].weight * areaVals[k], 0) / wSum;
+  const sPenalty = areaVals.S === null ? 0 : 15 * areaVals.S;
+  const score = Math.max(0, Math.min(100, Math.round(100 * basis - sPenalty)));
+  return { score, areaVals, basis, skipped };
+}
+
+function levelFor(score) { return LEVELS.find(l => score >= l.min); }
+
+/* ============ Herz-SVG ============ */
+function heartSVG(percent, size) {
+  const p = Math.max(0, Math.min(100, percent));
+  const fillY = 24 - (p / 100) * 22; // 24 = leer (unten), 2 = voll
+  return `
+  <svg width="${size}" height="${size}" viewBox="0 0 24 24">
+    <defs>
+      <clipPath id="heartclip${size}">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+      </clipPath>
+      <linearGradient id="heartgrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#ff7a9e"/>
+        <stop offset="100%" stop-color="#d61f56"/>
+      </linearGradient>
+    </defs>
+    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+          fill="#ffe3ea" stroke="#e0446c" stroke-width="0.6"/>
+    <g clip-path="url(#heartclip${size})">
+      <rect x="0" y="${fillY}" width="24" height="24" fill="url(#heartgrad)">
+        <animate attributeName="y" from="24" to="${fillY}" dur="1.2s" fill="freeze"
+                 calcMode="spline" keySplines="0.25 0.1 0.25 1"/>
+      </rect>
+    </g>
+    <text x="12" y="12.5" text-anchor="middle" font-size="5" font-weight="bold"
+          fill="${p >= 55 ? '#ffffff' : '#b82e52'}" font-family="Segoe UI, sans-serif">${Math.round(p)}%</text>
+  </svg>`;
+}
+
+// Herz + animierter Mini-Barometer daneben (halbe Herzhöhe, mit Farbexplosion oben)
+function heartBlock(percent, size) {
+  return heartSVG(percent, size) +
+    `<div class="baro-wrap" style="height:${Math.round(size * 0.5)}px">
+       <div class="burst"></div>
+       <div class="baro"><div class="baro-fill"></div></div>
+     </div>`;
+}
+
+/* ============ Speicher (Verlauf) ============ */
+const STORE_KEY = "herzbarometer_history";
+function loadHistory() {
+  // Migration: übernimmt auch alte Ergebnisse aus der Herzblatt-Version
+  try { return JSON.parse(localStorage.getItem(STORE_KEY) || localStorage.getItem("herzblatt_history")) || []; }
+  catch (e) { return []; }
+}
+function saveResult(score, areaVals) {
+  const hist = loadHistory();
+  hist.push({ date: new Date().toISOString(), score, areaVals });
+  localStorage.setItem(STORE_KEY, JSON.stringify(hist));
+}
+
+/* ============ Liebesmelodie (eigene Komposition, Web Audio – keine fremden Rechte) ============ */
+const Music = {
+  ctx: null, master: null, playing: false, timer: null,
+  BPM: 64,
+  freq(m) { return 440 * Math.pow(2, (m - 69) / 12); },
+  note(midi, t, dur, vol, type) {
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type || "sine"; o.frequency.value = this.freq(midi);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(vol, t + 0.06);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g); g.connect(this.master);
+    o.start(t); o.stop(t + dur + 0.05);
+  },
+  // 8 Takte: Am – F – C – G, zweimal, sanfte Melodie darüber
+  scheduleLoop(t0) {
+    const beat = 60 / this.BPM;
+    const chords = [
+      [57, 60, 64], [53, 57, 60], [55, 60, 64], [55, 59, 62],
+      [57, 60, 64], [53, 57, 60], [55, 60, 64], [55, 59, 62]
+    ];
+    const melody = [
+      [76, 72], [72, 69], [76, 67], [74, 71],
+      [69, 72], [69, 65], [67, 64], [71, 67]
+    ];
+    chords.forEach((ch, bar) => {
+      const tBar = t0 + bar * 4 * beat;
+      // Bass (Grundton eine Oktave tiefer, ganzer Takt)
+      this.note(ch[0] - 12, tBar, 4 * beat, 0.10, "sine");
+      // Arpeggio in Achteln: tief – mitte – hoch – mitte
+      const pat = [0, 1, 2, 1, 0, 1, 2, 1];
+      pat.forEach((idx, i) => this.note(ch[idx], tBar + i * beat / 2, beat * 0.9, 0.05, "triangle"));
+      // Melodie: zwei halbe Noten pro Takt
+      melody[bar].forEach((m, i) => this.note(m, tBar + i * 2 * beat, 2 * beat * 0.95, 0.09, "sine"));
+    });
+    return 8 * 4 * beat; // Loop-Länge in Sekunden
+  },
+  start() {
+    if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    this.ctx.resume();
+    this.master = this.ctx.createGain();
+    this.master.gain.value = 0.5;
+    this.master.connect(this.ctx.destination);
+    this.playing = true;
+    const loop = () => {
+      if (!this.playing) return;
+      const len = this.scheduleLoop(this.ctx.currentTime + 0.08);
+      this.timer = setTimeout(loop, (len - 0.3) * 1000);
+    };
+    loop();
+  },
+  stop() {
+    this.playing = false;
+    clearTimeout(this.timer);
+    if (this.master) { this.master.gain.setTargetAtTime(0, this.ctx.currentTime, 0.15); }
+  },
+  toggle() {
+    this.playing ? this.stop() : this.start();
+    document.getElementById("musicBtn").classList.toggle("on", this.playing);
+    document.getElementById("musicBtn").textContent = this.playing ? "🎶" : "🎵";
+  }
+};
+
+/* ============ Schwebende Herzchen ============ */
+function floatingHearts(count) {
+  const symbols = ["💗", "💕", "❤️", "💖"];
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => {
+      const el = document.createElement("div");
+      el.className = "float-heart";
+      el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+      el.style.left = (5 + Math.random() * 90) + "vw";
+      el.style.fontSize = (16 + Math.random() * 18) + "px";
+      el.style.animationDuration = (4 + Math.random() * 4) + "s";
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 8500);
+    }, i * 350);
+  }
+}
+
+/* ============ App-Zustand & Screens ============ */
+const app = document.getElementById("app");
+let state = { screen: "start", qIndex: 0, values: {}, lastResult: null };
+
+function render() {
+  if (state.screen === "start")   return renderStart();
+  if (state.screen === "quiz")    return renderQuiz();
+  if (state.screen === "result")  return renderResult();
+  if (state.screen === "history") return renderHistory();
+  if (state.screen === "report")  return renderReport();
+}
+
+function renderStart() {
+  const hist = loadHistory();
+  const last = hist.length ? hist[hist.length - 1].score : 50;
+  app.innerHTML = `
+  <div class="card">
+    <h1>Herzbarometer</h1>
+    <p class="subtitle">${T().subtitle}</p>
+    <div class="heart-wrap">${heartBlock(hist.length ? last : 100, 170)}</div>
+    <p style="text-align:center; line-height:1.6; color:var(--muted); font-size:0.95rem;">${T().intro}</p>
+    <button class="btn" id="startBtn">${T().start}</button>
+    ${hist.length ? `<button class="btn secondary" id="histBtn">${fmt(T().hist, { n: hist.length })}</button>` : ''}
+    <div class="disclaimer">${T().disclaimer}</div>
+  </div>`;
+  document.getElementById("startBtn").onclick = () => {
+    state = { screen: "quiz", qIndex: 0, values: {} };
+    render();
+  };
+  const hb = document.getElementById("histBtn");
+  if (hb) hb.onclick = () => { state.screen = "history"; render(); };
+}
+
+function renderQuiz() {
+  const q = QUESTIONS[state.qIndex];
+  const lq = qLoc(q);
+  const stored = state.values[q.id];
+  const wasSkipped = stored === null;
+  const cur = (stored === undefined || stored === null) ? Math.round((q.min + q.max) / 2) : stored;
+  const dots = QUESTIONS.map((_, i) => `<span class="${i <= state.qIndex ? 'done' : ''}"></span>`).join("");
+  app.innerHTML = `
+  <div class="card">
+    <div class="progress">${dots}</div>
+    <div class="q-area">${areaName(q.area)} · ${fmt(T().qOf, { i: state.qIndex + 1, n: QUESTIONS.length })}</div>
+    <div class="q-text">${lq.text}</div>
+    <div class="q-hint">${lq.hint}</div>
+    <div class="slider-value" id="sv">${cur}</div>
+    <div class="slider-unit">${lq.unit}${cur === q.max && OPEN_ENDED.has(q.id) ? T().orMore : ""}</div>
+    <input type="range" id="slider" min="${q.min}" max="${q.max}" step="1" value="${cur}">
+    <div class="nav-row">
+      <button class="btn secondary" id="prevBtn">${T().back}</button>
+      <button class="btn" id="nextBtn">${state.qIndex === QUESTIONS.length - 1 ? T().showResult : T().next}</button>
+    </div>
+    <button class="link-btn" id="skipBtn">${wasSkipped ? T().skipStay : T().skip}</button>
+  </div>`;
+  const slider = document.getElementById("slider");
+  slider.oninput = () => {
+    document.getElementById("sv").textContent = slider.value;
+  };
+  const advance = () => {
+    if (state.qIndex < QUESTIONS.length - 1) { state.qIndex++; render(); }
+    else { state.screen = "result"; render(); }
+  };
+  document.getElementById("nextBtn").onclick = () => {
+    state.values[q.id] = +slider.value;
+    advance();
+  };
+  document.getElementById("skipBtn").onclick = () => {
+    state.values[q.id] = null;
+    advance();
+  };
+  document.getElementById("prevBtn").onclick = () => {
+    if (state.qIndex > 0) { state.qIndex--; render(); }
+    else { state.screen = "start"; render(); }
+  };
+}
+
+function renderResult() {
+  const { score, areaVals, basis, skipped } = computeScore(state.values);
+  if (score === null) {
+    app.innerHTML = `
+    <div class="card">
+      <h1>${T().tooFewTitle}</h1>
+      <p style="text-align:center;color:var(--muted);line-height:1.6;margin:16px 0;">${T().tooFewText}</p>
+      <button class="btn" id="againBtn">${T().backToQ}</button>
+    </div>`;
+    document.getElementById("againBtn").onclick = () => { state.screen = "quiz"; state.qIndex = 0; render(); };
+    return;
+  }
+  const level = levelLoc(score);
+  state.lastResult = { score, areaVals, basis, skipped, date: new Date() };
+  floatingHearts(score >= 75 ? 14 : 7);
+
+  // Schwächste Bereiche ermitteln (S invertiert: hoher S-Wert = Problem; übersprungene zählen nicht)
+  const ranked = Object.keys(AREAS)
+    .filter(k => areaVals[k] !== null)
+    .map(k => ({ key: k, val: k === "S" ? 1 - areaVals.S : areaVals[k] }))
+    .sort((a, b) => a.val - b.val);
+  const weak = ranked.filter(r => r.val < 0.75).slice(0, 3);
+  const tipsToShow = (weak.length ? weak : ranked.slice(0, 1)).map(r => tipLoc(r.key));
+
+  const bars = Object.keys(AREAS).map(k => {
+    if (areaVals[k] === null) {
+      return `<div class="bar-row">
+        <div class="bar-head"><span>${areaName(k)}</span><span style="color:var(--muted)">${T().skippedLabel}</span></div>
+        <div class="bar-track"></div>
+      </div>`;
+    }
+    const v = k === "S" ? 1 - areaVals.S : areaVals[k];
+    const pct = Math.round(v * 100);
+    return `<div class="bar-row">
+      <div class="bar-head"><span>${areaName(k)}</span><span>${pct}%</span></div>
+      <div class="bar-track"><div class="bar-fill" data-w="${pct}"></div></div>
+    </div>`;
+  }).join("");
+
+  const formulaVals = Object.keys(AREAS).map(k =>
+    `${k} (${areaName(k)}) = ${areaVals[k] === null ? T().skippedLabel : areaVals[k].toFixed(2)}`).join("\n");
+
+  app.innerHTML = `
+  <div class="card">
+    <h1>${T().resultTitle}</h1>
+    <div class="heart-wrap">${heartBlock(score, 190)}</div>
+    <div class="score-label">${level.label}</div>
+    <div class="score-desc">${level.desc}</div>
+    <h2>${T().areasTitle}</h2>
+    <div class="bars">${bars}</div>
+    <h2>${T().tipsTitle}</h2>
+    <div class="tips">${tipsToShow.map(t => `<div class="tip">${t}</div>`).join("")}</div>
+    <button class="link-btn" id="formulaBtn">${T().howCalc}</button>
+    <div class="formula-box" id="formulaBox">
+      ${T().formulaIntro}
+      <code>${formulaVals}</code>
+      ${T().formulaLabel}
+      <code>${T().codeBase}
+      = ${basis.toFixed(3)}
+Score = max(0, min(100, 100·B − ${areaVals.S === null ? "0)) " + T().codeSkipS : "15·S))"}
+      = max(0, min(100, ${(100 * basis).toFixed(1)} − ${areaVals.S === null ? "0.0" : (15 * areaVals.S).toFixed(1)}))
+      = ${score}%</code>
+      ${skipped.length
+        ? fmt(T().skipNote, { list: skipped.map(areaName).join(", ") })
+        : T().fullNote}
+      ${T().penaltyNote}
+    </div>
+    <button class="btn" id="saveBtn">${T().save}</button>
+    <button class="btn secondary" id="reportBtn">${T().reportBtn}</button>
+    <button class="btn secondary" id="againBtn">${T().again}</button>
+  </div>`;
+
+  requestAnimationFrame(() => {
+    document.querySelectorAll(".bar-fill").forEach(el => { el.style.width = el.dataset.w + "%"; });
+  });
+  document.getElementById("formulaBtn").onclick = () =>
+    document.getElementById("formulaBox").classList.toggle("open");
+  document.getElementById("saveBtn").onclick = () => {
+    saveResult(score, areaVals);
+    state.screen = "history"; render();
+  };
+  document.getElementById("reportBtn").onclick = () => { state.screen = "report"; render(); };
+  document.getElementById("againBtn").onclick = () => {
+    state = { screen: "quiz", qIndex: 0, values: {}, lastResult: null }; render();
+  };
+}
+
+function renderReport() {
+  const r = state.lastResult;
+  if (!r) { state.screen = "start"; return render(); }
+  const level = levelLoc(r.score);
+  const areaScore = k => k === "S" ? 1 - r.areaVals.S : r.areaVals[k];
+  const answered = Object.keys(AREAS).filter(k => r.areaVals[k] !== null);
+  const ranked = answered
+    .map(k => ({ key: k, val: areaScore(k) }))
+    .sort((a, b) => a.val - b.val);
+  const weak = ranked.filter(x => x.val < 0.75);
+  const strong = ranked.filter(x => x.val >= 0.75).reverse();
+  const focus = weak.length ? weak : ranked.slice(0, 2);
+
+  const overview = Object.keys(AREAS).map(k =>
+    `<div class="report-score-line"><span>${areaName(k)}</span><b>${r.areaVals[k] === null ? T().skippedLabel : Math.round(areaScore(k) * 100) + "%"}</b></div>`
+  ).join("");
+
+  const focusSections = focus.map(f => `
+    <div class="report-section">
+      <h3>${areaName(f.key)} – ${Math.round(f.val * 100)}%</h3>
+      <p><b>${T().why}</b> ${guideLoc(f.key).why}</p>
+      <p><b>${T().what}</b></p>
+      <ul>${guideLoc(f.key).actions.map(a => `<li>${a}</li>`).join("")}</ul>
+    </div>`).join("");
+
+  const strongText = strong.length
+    ? `<div class="report-section"><h3>${T().strengths}</h3><p>${fmt(T().strengthsText, { list: strong.map(s => areaName(s.key)).join(", ") })}</p></div>` : "";
+
+  app.innerHTML = `
+  <div class="card">
+    <h1>${T().reportTitle}</h1>
+    <p class="subtitle">Herzbarometer – ${T().subtitle}</p>
+    <div class="report-meta">${r.date.toLocaleDateString(T().dateLocale, { day:"2-digit", month:"long", year:"numeric" })}
+      · ${r.date.toLocaleTimeString(T().dateLocale, { hour:"2-digit", minute:"2-digit" })}${T().timeSuffix}</div>
+    <div class="heart-wrap">${heartBlock(r.score, 130)}</div>
+    <div class="score-label">${level.label}</div>
+    <div class="score-desc">${level.desc}</div>
+    <div class="report-section">
+      <h3>${T().overview}</h3>
+      ${overview}
+    </div>
+    ${focusSections}
+    ${strongText}
+    <div class="report-section">
+      <h3>${T().handleTitle}</h3>
+      <p>${T().handleP1}</p>
+      <p>${T().handleP2}</p>
+    </div>
+    <div class="disclaimer">${T().reportDisclaimer}</div>
+    <button class="btn no-print" id="printBtn">${T().print}</button>
+    <button class="btn secondary no-print" id="backBtn">${T().backToResult}</button>
+  </div>`;
+
+  document.getElementById("printBtn").onclick = () => window.print();
+  document.getElementById("backBtn").onclick = () => { state.screen = "result"; render(); };
+}
+
+function renderHistory() {
+  const hist = loadHistory();
+  let trend = "";
+  if (hist.length >= 2) {
+    const diff = hist[hist.length - 1].score - hist[hist.length - 2].score;
+    trend = diff > 0 ? fmt(T().trendUp, { n: diff })
+          : diff < 0 ? fmt(T().trendDown, { n: -diff })
+          : T().trendFlat;
+  }
+  const items = hist.slice().reverse().map(h => {
+    const d = new Date(h.date);
+    return `<div class="history-item">
+      <span class="date">${d.toLocaleDateString(T().dateLocale, { day:"2-digit", month:"2-digit", year:"numeric" })}
+        ${d.toLocaleTimeString(T().dateLocale, { hour:"2-digit", minute:"2-digit" })}${T().timeSuffix}</span>
+      <span class="val">${h.score}%</span>
+    </div>`;
+  }).join("");
+  const last = hist.length ? hist[hist.length - 1].score : 0;
+
+  app.innerHTML = `
+  <div class="card">
+    <h1>${T().historyTitle}</h1>
+    <p class="subtitle">${T().historySubtitle}</p>
+    <div class="heart-wrap">${hist.length ? heartBlock(last, 140) : ""}</div>
+    ${trend ? `<div class="trend">${trend}</div>` : ""}
+    ${hist.length >= 2 ? `<canvas id="chart" height="140"></canvas>` : ""}
+    ${items || `<div class="empty">${T().empty}</div>`}
+    <button class="btn" id="newBtn">${T().newCheck}</button>
+    <button class="btn secondary" id="homeBtn">${T().home}</button>
+    ${hist.length ? `<button class="link-btn" id="clearBtn">${T().clear}</button>` : ''}
+  </div>`;
+
+  if (hist.length >= 2) drawChart(hist);
+  document.getElementById("newBtn").onclick = () => { state = { screen:"quiz", qIndex:0, values:{} }; render(); };
+  document.getElementById("homeBtn").onclick = () => { state.screen = "start"; render(); };
+  const cb = document.getElementById("clearBtn");
+  if (cb) cb.onclick = () => {
+    if (confirm(T().confirmClear)) {
+      localStorage.removeItem(STORE_KEY); render();
+    }
+  };
+}
+
+function drawChart(hist) {
+  const c = document.getElementById("chart");
+  const dpr = window.devicePixelRatio || 1;
+  const w = c.clientWidth, h = 140;
+  c.width = w * dpr; c.height = h * dpr;
+  const ctx = c.getContext("2d");
+  ctx.scale(dpr, dpr);
+  const pad = 14;
+  const xs = hist.map((_, i) => pad + (w - 2 * pad) * (hist.length === 1 ? 0.5 : i / (hist.length - 1)));
+  const ys = hist.map(hh => h - pad - (h - 2 * pad) * (hh.score / 100));
+  ctx.strokeStyle = "#ffd9e3"; ctx.lineWidth = 1;
+  [0, 50, 100].forEach(v => {
+    const y = h - pad - (h - 2 * pad) * (v / 100);
+    ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(w - pad, y); ctx.stroke();
+  });
+  ctx.strokeStyle = "#e0446c"; ctx.lineWidth = 2.5; ctx.lineJoin = "round";
+  ctx.beginPath();
+  xs.forEach((x, i) => i ? ctx.lineTo(x, ys[i]) : ctx.moveTo(x, ys[i]));
+  ctx.stroke();
+  ctx.fillStyle = "#b82e52";
+  xs.forEach((x, i) => { ctx.beginPath(); ctx.arc(x, ys[i], 4, 0, 7); ctx.fill(); });
+}
+
+document.getElementById("musicBtn").onclick = () => Music.toggle();
+
+// Sprachumschalter
+document.querySelectorAll(".lang-btn").forEach(b => { b.onclick = () => setLang(b.dataset.lang); });
+document.documentElement.lang = LANG;
+document.querySelectorAll(".lang-btn").forEach(b => b.classList.toggle("active", b.dataset.lang === LANG));
+document.getElementById("copyLine").textContent = "Herzbarometer © 2026 Olaf · " + T().rights;
+
+// Herz dreht sich alle 10 Sekunden einmal um die eigene senkrechte Achse
+setInterval(() => {
+  document.querySelectorAll(".heart-wrap svg").forEach(svg => {
+    svg.classList.add("spin");
+    setTimeout(() => svg.classList.remove("spin"), 1500);
+  });
+}, 10000);
+
+// PWA: Service Worker registrieren (nur wenn über einen Webserver geladen, nicht bei lokaler Datei)
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+
+render(); // Herzbarometer v0.5 (PWA)
+</script>
+</body>
+</html>

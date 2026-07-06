@@ -1,0 +1,17 @@
+{
+  "name": "Herzbarometer – Dein Liebesbarometer",
+  "short_name": "Herzbarometer",
+  "description": "Beziehungsqualität messbar reflektieren: 12 Fragen, transparenter Score, konkrete Empfehlungen.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fff5f7",
+  "theme_color": "#e0446c",
+  "lang": "de",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
