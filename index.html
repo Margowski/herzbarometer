@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   Herzbarometer – Dein Liebesbarometer
-  Copyright © 2026 Olaf. Alle Rechte vorbehalten.
+  Copyright © 2026 Olaf Margowski. Alle Rechte vorbehalten.
   Konzept, Formel-Umsetzung, Design und Code sind urheberrechtlich geschützt.
   Vervielfältigung, Verbreitung oder Bearbeitung nur mit schriftlicher Genehmigung.
 -->
@@ -244,7 +244,6 @@
   <button class="music-btn" id="musicBtn" title="Liebesmelodie an/aus">🎵</button>
 </div>
 <div class="app" id="app"></div>
-<div class="copyright" id="copyLine">Herzbarometer © 2026 Olaf · Alle Rechte vorbehalten</div>
 
 <script>
 "use strict";
@@ -703,12 +702,12 @@ const levelLoc = score => {
   const i = LEVELS.findIndex(l => score >= l.min);
   return LANG === "de" ? LEVELS[i] : { min: LEVELS[i].min, ...L10N[LANG].levels[i] };
 };
+const copyLine = () => `<div class="copyright">Herzbarometer © 2026 Olaf Margowski · ${T().rights}</div>`;
 function setLang(l) {
   LANG = l;
   localStorage.setItem("herzbarometer_lang", l);
   document.documentElement.lang = l;
   document.querySelectorAll(".lang-btn").forEach(b => b.classList.toggle("active", b.dataset.lang === l));
-  document.getElementById("copyLine").textContent = "Herzbarometer © 2026 Olaf · " + T().rights;
   render();
 }
 
@@ -889,6 +888,7 @@ function renderStart() {
     <button class="btn" id="startBtn">${T().start}</button>
     ${hist.length ? `<button class="btn secondary" id="histBtn">${fmt(T().hist, { n: hist.length })}</button>` : ''}
     <div class="disclaimer">${T().disclaimer}</div>
+    ${copyLine()}
   </div>`;
   document.getElementById("startBtn").onclick = () => {
     state = { screen: "quiz", qIndex: 0, values: {} };
@@ -1078,6 +1078,7 @@ function renderReport() {
       <p>${T().handleP2}</p>
     </div>
     <div class="disclaimer">${T().reportDisclaimer}</div>
+    ${copyLine()}
     <button class="btn no-print" id="printBtn">${T().print}</button>
     <button class="btn secondary no-print" id="backBtn">${T().backToResult}</button>
   </div>`;
@@ -1158,7 +1159,6 @@ document.getElementById("musicBtn").onclick = () => Music.toggle();
 document.querySelectorAll(".lang-btn").forEach(b => { b.onclick = () => setLang(b.dataset.lang); });
 document.documentElement.lang = LANG;
 document.querySelectorAll(".lang-btn").forEach(b => b.classList.toggle("active", b.dataset.lang === LANG));
-document.getElementById("copyLine").textContent = "Herzbarometer © 2026 Olaf · " + T().rights;
 
 // Herz dreht sich alle 10 Sekunden einmal um die eigene senkrechte Achse
 setInterval(() => {

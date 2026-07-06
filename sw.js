@@ -1,5 +1,5 @@
 /* Herzbarometer Service Worker – macht die App offline-fähig */
-const CACHE = "herzbarometer-v2";
+const CACHE = "herzbarometer-v3";
 const ASSETS = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
